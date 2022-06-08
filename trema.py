@@ -38,11 +38,10 @@ async def hello(ctx):
 async def on_member_join(member):
 	guild = member.guild
 	sys_chan = guild.system_channel
-	welcome_msg = "Bonjour"
-#	welcome_msg =\
-#		f"Heille {member.mention}!" +\
-#		f"\nBienvenue au Club CEDILLE. Rends-toi dans {sys_chan.name}" +\
-#		"pour avoir accès au reste du serveur!"
+	welcome_msg =\
+		f"Heille {member.mention}!"\
+		+ "\nBienvenue au Club CEDILLE. Rends-toi dans #accueil "\
+		+ "pour avoir accès au reste du serveur!"
 	await sys_chan.send(welcome_msg)
 
 
@@ -50,7 +49,7 @@ async def on_member_join(member):
 async def on_member_remove(member):
 	guild = member.guild
 	sys_chan = guild.system_channel
-	message = f"{member.name} décâlisse."
+	message = f"{member.name} est parti(e)."
 	await sys_chan.send(message)
 
 
