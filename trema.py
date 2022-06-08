@@ -29,6 +29,10 @@ intents.members = True
 trema = discord.Bot(intents=intents)
 
 
+def get_channel_by_name(channel_name):
+	return discord.utils.get(trema.get_all_channels(), name=channel_name)
+
+
 @trema.slash_command(guild_ids=server_ids, name="hello")
 async def hello(ctx):
     await ctx.respond("Hello!")
@@ -38,9 +42,11 @@ async def hello(ctx):
 async def on_member_join(member):
 	guild = member.guild
 	sys_chan = guild.system_channel
+	redirect_chan = get_channel_by_name("accueil")
 	welcome_msg =\
 		f"Heille {member.mention}!"\
-		+ "\nBienvenue au Club CEDILLE. Rends-toi dans #accueil "\
+		+ f"\nBienvenue au Club CEDILLE. "\
+		+ f"Suis les instructions dans {redirect_chan.mention} "\
 		+ "pour avoir accès au reste du serveur!"
 	await sys_chan.send(welcome_msg)
 
