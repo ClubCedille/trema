@@ -6,6 +6,12 @@ Discord des clubs étudiants de l'ÉTS.
 
 from argparse import ArgumentParser
 import discord
+from threading import Thread
+from time import sleep
+
+
+_DELAY_SECS_15_MIN = 15 * 60
+_ROLE_EVERYONE = "@everyone"
 
 
 def _make_arg_parser():
@@ -33,6 +39,47 @@ def get_channel_by_name(channel_name):
 	return discord.utils.get(trema.get_all_channels(), name=channel_name)
 
 
+def member_has_non_default_role(member):
+	"""
+	Determines whether a server member has a role besides the default ones:
+	@everyone and the member's name.
+
+	Args:
+		member (discord.member.Member): a server member
+
+	Returns:
+		bool: True if member has a non-default role, False otherwise
+	"""
+	member_name = member.name
+
+	for role in member.roles:
+		role_name = role.name
+
+		if role_name != _ROLE_EVERYONE and role_name != member_name:
+			return True
+
+	return False
+
+
+async def send_delayed_dm(user, message, delay, condition=None):
+	"""
+	Sends a direct message (DM) to the specified Discord user after a delay.
+	This function should be called by a thread.
+
+	Args:
+		user (discord.abc.User): a Discord user
+		message (str): the direct message to send to user
+		delay (int): the time to wait, in seconds, before sending the message
+		condition (function): a Boolean function that takes no argument. The
+			message is sent if it is None or it returns True. Defaults to None.
+	"""
+	sleep(delay)
+	print("Message")
+
+	if condition is None or condition():
+		await trema.send_message(user, message)
+
+
 @trema.slash_command(guild_ids=server_ids, name="hello")
 async def hello(ctx):
     await ctx.respond("Hello!")
@@ -42,13 +89,23 @@ async def hello(ctx):
 async def on_member_join(member):
 	guild = member.guild
 	sys_chan = guild.system_channel
-	redirect_chan = get_channel_by_name("accueil")
+	# A channel that contains integration instruction
+	instruct_chan = get_channel_by_name("accueil")
 	welcome_msg =\
 		f"Heille {member.mention}!"\
 		+ f"\nBienvenue au Club CEDILLE. "\
-		+ f"Suis les instructions dans {redirect_chan.mention} "\
+		+ f"Suis les instructions dans {instruct_chan.mention} "\
 		+ "pour avoir accès au reste du serveur!"
 	await sys_chan.send(welcome_msg)
+
+	reminder_msg =\
+		f"Viens dans {instruct_chan.mention} pour t'attribuer un rôle!"
+	msg_condition = lambda: member_has_non_default_role(member)
+	#msg_condition = lambda: True
+	print("Message")
+	reminder_thread = Thread(target=send_delayed_dm,
+		args=(member, reminder_msg, 10, msg_condition))
+	reminder_thread.start()
 
 
 @trema.event
