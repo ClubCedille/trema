@@ -5,9 +5,8 @@ Discord des clubs étudiants de l'ÉTS.
 
 
 from argparse import ArgumentParser
+import asyncio
 import discord
-from threading import Thread
-from time import sleep
 
 
 _DELAY_SECS_15_MIN = 15 * 60
@@ -64,7 +63,7 @@ def member_has_non_default_role(member):
 async def send_delayed_dm(user, message, delay, condition=None):
 	"""
 	Sends a direct message (DM) to the specified Discord user after a delay.
-	This function should be called by a thread.
+	This function should be called asynchronously.
 
 	Args:
 		user (discord.abc.User): a Discord user
@@ -73,11 +72,12 @@ async def send_delayed_dm(user, message, delay, condition=None):
 		condition (function): a Boolean function that takes no argument. The
 			message is sent if it is None or it returns True. Defaults to None.
 	"""
-	sleep(delay)
+	asyncio.sleep(delay)
 	print("Message")
 
 	if condition is None or condition():
-		await trema.send_message(user, message)
+		#await trema.send_message(user, message)
+		await user.send(message)
 
 
 @trema.slash_command(guild_ids=server_ids, name="hello")
@@ -89,7 +89,7 @@ async def hello(ctx):
 async def on_member_join(member):
 	guild = member.guild
 	sys_chan = guild.system_channel
-	# A channel that contains integration instruction
+	# A channel that contains integration instructions
 	instruct_chan = get_channel_by_name("accueil")
 	welcome_msg =\
 		f"Heille {member.mention}!"\
@@ -98,21 +98,22 @@ async def on_member_join(member):
 		+ "pour avoir accès au reste du serveur!"
 	await sys_chan.send(welcome_msg)
 
-	reminder_msg =\
-		f"Viens dans {instruct_chan.mention} pour t'attribuer un rôle!"
-	msg_condition = lambda: member_has_non_default_role(member)
-	#msg_condition = lambda: True
-	print("Message")
-	reminder_thread = Thread(target=send_delayed_dm,
-		args=(member, reminder_msg, 10, msg_condition))
-	reminder_thread.start()
+	if not member.bot:
+		reminder_msg =\
+			f"Viens dans {instruct_chan.mention} pour t'attribuer un rôle!"
+		#msg_condition = lambda: member_has_non_default_role(member)
+		msg_condition = lambda: True
+		print("Message")
+		reminder_task = asyncio.create_task(
+			send_delayed_dm(member, reminder_msg, 10, msg_condition))
+		await asyncio.wait(reminder_task)
 
 
 @trema.event
 async def on_member_remove(member):
 	guild = member.guild
 	sys_chan = guild.system_channel
-	message = f"{member.name} est parti(e)."
+	message = f"{member.name} a quitté le serveur."
 	await sys_chan.send(message)
 
 
