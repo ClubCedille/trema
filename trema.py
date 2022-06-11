@@ -78,11 +78,6 @@ async def send_delayed_dm(user, message, delay, condition=None):
 		await user.send(message)
 
 
-@trema.slash_command(guild_ids=server_ids, name="hello")
-async def hello(ctx):
-    await ctx.respond("Hello!")
-
-
 @trema.event
 async def on_member_join(member):
 	guild = member.guild
