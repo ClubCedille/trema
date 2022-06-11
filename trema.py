@@ -15,8 +15,8 @@ _ROLE_EVERYONE = "@everyone"
 
 def _make_arg_parser():
 	parser = ArgumentParser(description=__doc__)
-	parser.add_argument("-s", "--serveurs", nargs="+", type=str,
-		help="L'identifiant des serveurs où ce robot fonctionnera")
+	parser.add_argument("-s", "--serveur", type=str,
+		help="L'identifiant du serveur où ce robot fonctionnera")
 	parser.add_argument("-j", "--jeton", type=str,
 		help="Le jeton d'authentification de ce robot logiciel")
 	return parser
@@ -25,7 +25,7 @@ def _make_arg_parser():
 arg_parser = _make_arg_parser()
 args = arg_parser.parse_args()
 
-server_ids = args.serveurs
+server_ids = (args.serveur,)
 bot_token = args.jeton
 
 intents = discord.Intents.default()
