@@ -73,10 +73,8 @@ async def send_delayed_dm(user, message, delay, condition=None):
 			message is sent if it is None or it returns True. Defaults to None.
 	"""
 	asyncio.sleep(delay)
-	print("Message")
 
 	if condition is None or condition():
-		#await trema.send_message(user, message)
 		await user.send(message)
 
 
@@ -98,14 +96,13 @@ async def on_member_join(member):
 		+ "pour avoir accès au reste du serveur!"
 	await sys_chan.send(welcome_msg)
 
+	# A reminder if the new member does not select a role
 	if not member.bot:
 		reminder_msg =\
 			f"Viens dans {instruct_chan.mention} pour t'attribuer un rôle!"
-		#msg_condition = lambda: member_has_non_default_role(member)
-		msg_condition = lambda: True
-		print("Message")
-		reminder_task = asyncio.create_task(
-			send_delayed_dm(member, reminder_msg, 10, msg_condition))
+		msg_condition = lambda: member_has_non_default_role(member)
+		reminder_task = asyncio.create_task(send_delayed_dm(
+			member, reminder_msg, _DELAY_SECS_15_MIN, msg_condition))
 		await asyncio.wait(reminder_task)
 
 
