@@ -62,9 +62,9 @@ def member_roles_are_default(member):
 
 async def send_delayed_dm(user, message, delay, condition=None):
 	"""
-	Sends a direct message (DM) to the specified Discord user after a delay.
-	This function should be called asynchronously. The condition is evaluated
-	after the delay.
+	Sends a direct message (DM) to the specified Discord user after a delay. If
+	a condition is given, it is evaluated when the delay is up and it must
+	return True for the message to be sent.
 
 	Args:
 		user (discord.abc.User): a Discord user
