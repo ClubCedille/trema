@@ -38,16 +38,16 @@ def get_channel_by_name(channel_name):
 	return discord.utils.get(trema.get_all_channels(), name=channel_name)
 
 
-def member_has_non_default_role(member):
+def member_roles_are_default(member):
 	"""
-	Determines whether a server member has a role besides the default ones:
-	@everyone and the member's name.
+	Determines whether a server member does not have roles besides the default
+	ones: @everyone and the member's name.
 
 	Args:
 		member (discord.member.Member): a server member
 
 	Returns:
-		bool: True if member has a non-default role, False otherwise
+		bool: True if all of member's roles are default one, False otherwise
 	"""
 	member_name = member.name
 
@@ -55,15 +55,16 @@ def member_has_non_default_role(member):
 		role_name = role.name
 
 		if role_name != _ROLE_EVERYONE and role_name != member_name:
-			return True
+			return False
 
-	return False
+	return True
 
 
 async def send_delayed_dm(user, message, delay, condition=None):
 	"""
 	Sends a direct message (DM) to the specified Discord user after a delay.
-	This function should be called asynchronously.
+	This function should be called asynchronously. The condition is evaluated
+	after the delay.
 
 	Args:
 		user (discord.abc.User): a Discord user
@@ -95,10 +96,9 @@ async def on_member_join(member):
 	if not member.bot:
 		reminder_msg =\
 			f"Viens dans {instruct_chan.mention} pour t'attribuer un rôle!"
-		#msg_condition = lambda: member_has_non_default_role(member)
-		msg_condition = lambda: True
+		msg_condition = lambda: member_roles_are_default(member)
 		reminder_task = asyncio.create_task(send_delayed_dm(
-			member, reminder_msg, 15, msg_condition))
+			member, reminder_msg, 10, msg_condition))
 		await asyncio.wait([reminder_task])
 
 
