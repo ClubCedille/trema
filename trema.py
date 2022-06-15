@@ -98,7 +98,7 @@ async def on_member_join(member):
 			f"Viens dans {instruct_chan.mention} pour t'attribuer un rôle!"
 		msg_condition = lambda: member_roles_are_default(member)
 		reminder_task = asyncio.create_task(send_delayed_dm(
-			member, reminder_msg, 10, msg_condition))
+			member, reminder_msg, _DELAY_SECS_15_MIN, msg_condition))
 		await asyncio.wait([reminder_task])
 
 
