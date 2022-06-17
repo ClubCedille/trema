@@ -7,6 +7,27 @@ Discord des clubs étudiants de l'ÉTS.
 from argparse import ArgumentParser
 import discord
 
+from pymongo import MongoClient
+
+client = MongoClient("mongodb://root:root@localhost:27017/?authSource=admin")
+#database Trema
+mydb = client["trema"]
+#table serveur contenant les différents serveur utiliser par trema
+mycol = mydb["serveur"]
+
+###############
+# À enlever : 
+# Exemple de comment l'utiliser : 
+mydict = { "name": "cedille", "members_count": 85 }
+record = mycol.insert_one(mydict)
+
+# Équivalent à SELECT *
+for i in mycol.find():
+  print(i)
+
+
+mycol.drop()
+###############
 
 def _make_arg_parser():
 	parser = ArgumentParser(description=__doc__)
@@ -25,3 +46,7 @@ bot_token = args.jeton
 
 print(f"Serveurs: {server_ids}")
 print(f"Jeton du robot: {bot_token}")
+
+
+
+
