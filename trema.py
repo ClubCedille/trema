@@ -58,7 +58,6 @@ intents = discord.Intents.default()
 intents.members = True
 
 trema = discord.Bot(intents=intents)
-print(type(trema))
 
 
 @trema.event
