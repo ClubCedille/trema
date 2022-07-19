@@ -8,33 +8,11 @@ from argparse import ArgumentParser
 import asyncio
 import discord
 
-from pymongo import MongoClient
-
 from discord_util import\
 	get_channel_by_name,\
 	member_roles_are_default,\
 	send_delayed_dm
 
-
-client = MongoClient("mongodb://root:root@localhost:27017/?authSource=admin")
-#database Trema
-mydb = client["trema"]
-#table serveur contenant les différents serveur utiliser par trema
-mycol = mydb["serveur"]
-
-###############
-# À enlever : 
-# Exemple de comment l'utiliser : 
-mydict = { "name": "cedille", "members_count": 85 }
-record = mycol.insert_one(mydict)
-
-# Équivalent à SELECT *
-for i in mycol.find():
-  print(i)
-
-
-mycol.drop()
-###############
 
 _DELAY_SECS_15_MIN = 15 * 60
 

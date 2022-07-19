@@ -1,7 +1,5 @@
 from aifc import Error
-from cgitb import lookup
 from datetime import datetime
-import json
 from bson import utc
 from pymongo import MongoClient
 from jsonschema import validate
