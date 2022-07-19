@@ -5,6 +5,7 @@ from trema_database import\
 	AlreadyExistError,\
 	_TremaDatabase
 
+##serveur devrait contenir la clé étrangère 
 
 try:
 	date = datetime.isoformat(datetime.now(tz=utc))
