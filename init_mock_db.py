@@ -13,17 +13,16 @@ try:
 		"tremasim", "mongodb://root:root@localhost:27017/?authSource=admin")
 
 	welcomeDoc = {
-		"_id": 20918303,
+		"_id": 29387389,
 		"activer": False,
-		"message": "Welcome to Cedille Club",
+		"message": "Welcome to group 5 server",
 		"channel_id": 120947329,
-		"club_id": 569733982,
-		"joinedAt": date
+		"club_id": 569733982
 	}
 
 	serveurDoc = {
-		"_id": 569733982,
-		"name": "Cohorte 2022",
+		"_id": 459837,
+		"name": "Cursus G-5",
 		"joinedAt": date
 	}
 
@@ -33,21 +32,8 @@ try:
 	trema_database.add_document(welcome, welcomeDoc)
 	trema_database.add_document(serveur, serveurDoc)
 
-	welcomeCol = trema_database._database[welcome]
-	serveurCol = trema_database._database[serveur]
-
-	insertedWelcomeDoc = welcomeCol.find_one({"_id": welcomeDoc["_id"]})
-	insertedServeurDoc = serveurCol.find_one({"_id": serveurDoc["_id"]})
-
-	print(insertedWelcomeDoc)
-	print(insertedServeurDoc)
-
 except AlreadyExistError as e:
 	print(e)
+
 except TypeError as e:
 	print(e)
-
-# Prints the database content.
-cursor = serveurCol.find({})
-for document in cursor:
-	print(document)

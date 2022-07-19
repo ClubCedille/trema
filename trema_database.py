@@ -6,7 +6,7 @@ from schema import getSchema
 class AlreadyExistError(Exception):
 
 	def __init__(self, message):
-		Exception.__init__(message)
+		Exception.__init__(self, message)
 
 
 class _TremaDatabase:
