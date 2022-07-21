@@ -5,33 +5,33 @@ from trema_database import\
 	AlreadyExistError,\
 	_TremaDatabase
 
-##serveur devrait contenir la clé étrangère 
-
 try:
 	date = datetime.isoformat(datetime.now(tz=utc))
 
 	trema_database = _TremaDatabase(
 		"tremasim", "mongodb://root:root@localhost:27017/?authSource=admin")
 
-	welcomeDoc = {
-		"_id": 29387389,
-		"activer": False,
-		"message": "Welcome to group 5 server",
-		"channel_id": 120947329,
-		"club_id": 569733982
+	welcome_doc = {
+		"_id": 71049752,
+		"active": False,
+		"welcome_msg": "Welcome to group 5 server",
+		"reminder_msg": "Come to read the instructions.",
+		"leave_msg": "Goodbye",
+        "instruct_chan_id": 666
 	}
 
-	serveurDoc = {
-		"_id": 459837,
+	server_doc = {
+		"_id": 4820316,
 		"name": "Cursus G-5",
-		"joinedAt": date
+		"joinedAt": date,
+		"welcome_id": 71049752
 	}
 
-	welcome = "welcome"
-	serveur = "serveur"
+	col_welcome = "welcome"
+	col_server = "server"
 
-	trema_database.add_document(welcome, welcomeDoc)
-	trema_database.add_document(serveur, serveurDoc)
+	trema_database.add_document(col_welcome, welcome_doc)
+	trema_database.add_document(col_server, server_doc)
 
 except AlreadyExistError as e:
 	print(e)

@@ -1,4 +1,4 @@
-serveurSchema = {
+server_schema = {
     "type": "object",
     "properties": {
         "_id": {"type": "number"},
@@ -6,22 +6,24 @@ serveurSchema = {
         "joinedAt": {
             "type": "string",
             "format": "date-time"
-        }
+        },
+        "welcome_id": {"type": "number"}
     }
 }
 
-welcomeSchema = {
+welcome_schema = {
     "type": "object",
     "properties": {
         "_id": {"type": "number"},
-        "activer": {"type": "boolean"},
-        "message": {"type": "string"},
-        "channel_id": {"type": "number"},
-        "clud_id": {"type": "number"}
+        "active": {"type": "boolean"},
+        "welcome_msg": {"type": "string"},
+		"reminder_msg": {"type": "string"},
+		"leave_msg": {"type": "string"},
+        "instruct_chan_id": {"type": "number"}
     }
 }
 
 def getSchema(schemaName):
     if schemaName == "serveur":
-        return serveurSchema
-    return welcomeSchema
+        return server_schema
+    return welcome_schema
