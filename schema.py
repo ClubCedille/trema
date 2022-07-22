@@ -23,7 +23,7 @@ welcome_schema = {
     }
 }
 
-def getSchema(schemaName):
-    if schemaName == "serveur":
+def get_schema(schema_name):
+    if schema_name == "server":
         return server_schema
     return welcome_schema
