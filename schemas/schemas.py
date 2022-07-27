@@ -33,6 +33,8 @@ def read_json_file(json_path):
 	return content
 
 
+# Keys: schema names
+# Values: the schemas from the JSON files
 _schemas = dict()
 
 for schema_name in Schema:
