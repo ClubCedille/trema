@@ -1,6 +1,6 @@
 from jsonschema import validate
 from pymongo import MongoClient
-from schema import getSchema
+from schemas import get_schema
 
 
 class AlreadyExistError(Exception):
@@ -16,7 +16,7 @@ class _TremaDatabase:
 		self._database = client[name]
 
 	def add_document(self, collection_name, document):
-		schema = getSchema(collection_name)
+		schema = get_schema(collection_name)
 		validate(document, schema=schema)
 
 		collection = self._database[collection_name]
