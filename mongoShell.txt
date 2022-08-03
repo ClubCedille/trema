@@ -1,0 +1,84 @@
+How to connect to mongoShell:
+Run your docker container first
+Then, do the following commands on your terminal
+
+docker ps (grab the container id)
+docker exec -it (container id) bash
+mongo mongodb://localhost:27017 -u root -p root
+
+------------------------------
+
+Create database on mongoShell
+
+run command: use (database name);
+will create if it doesn't already exist. Otherwise,
+it will switch databases
+
+run db.getName(); to get the database name
+
+run show dbs; to see all databases. You won't see your
+newly created database if you do not create a collection first
+
+------------------------------
+
+Create collection on mongoShell
+
+run command db.createCollection("*insert collection name*");
+
+------------------------------
+
+Insert document on mongoShell
+
+if you want to insert a document, you can define a variable first.
+
+Example: user1 = {
+    "name": "Derek",
+    "lastName": "Morgan"
+}
+
+put that in the shell and enter
+
+you can then do db.*collectionName*.insert(user1);.
+
+Say you have a collection called user and you want to insert user1,
+it would look like
+db.user.insert(user1);
+
+Note: you can always create a collection through this command. So, if
+the collection doesn't already exist, mongoDB will create it for you.
+
+------------------------------
+
+Get documents in collection on mongoShell
+
+db.user.find().pretty();
+db.user.count(); gives the number of documents in a collection
+
+
+------------------------------
+
+Drop database/collection on mongoShell
+
+db.dropDatabase();
+db.user.drop();
+
+------------------------------
+
+Capped collections on mongoShell
+
+Capped collections are fixed-size collections that support operations to
+insert and retrieve documents based on insertion order.
+
+db.createCollection("student", {
+    capped: true,
+    size: 614200,
+    max: 500
+});
+
+size is the size in bytes and max is the maximum number of documents.
+
+------------------------------
+
+See collections on mongoShell
+
+db.getCollectionNames();

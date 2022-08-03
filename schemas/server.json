@@ -1,0 +1,12 @@
+{
+    "type": "object",
+    "properties": {
+        "_id": {"type": "number"},
+        "name": {"type": "string"},
+        "joinedAt": {
+            "type": "string",
+            "format": "date-time"
+        },
+        "welcome_id": {"type": "number"}
+    }
+}
