@@ -9,6 +9,12 @@ class AlreadyExistError(Exception):
 		Exception.__init__(self, message)
 
 
+class InvalidParameterError(Exception):
+
+	def __init__(self, message):
+		Exception.__init__(self, message)
+
+
 class _TremaDatabase:
 
 	def __init__(self, name, connect_str):
@@ -27,6 +33,24 @@ class _TremaDatabase:
 			raise AlreadyExistError(f"Document {doc_id} already exists.")
 
 		collection.insert_one(document)
+
+	def get_welcome_info(self, welcome_id):
+		collection = self._database["welcome"]
+		doc = collection.find_one({"_id": welcome_id})
+
+		if doc is None:
+			raise InvalidParameterError(f"Welcome channel {welcome_id} has not been defined.")
+		
+		return doc
+
+	def get_server_info(self, server_id):
+		collection = self._database["server"]
+		doc = collection.find_one({"_id": server_id})
+
+		if doc is None:
+			raise InvalidParameterError(f"Welcome message has yet to be defined for this server.")
+		
+		return doc
 
 
 database = _TremaDatabase(
