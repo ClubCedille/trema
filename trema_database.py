@@ -39,7 +39,8 @@ class _TremaDatabase:
 		doc = collection.find_one({"_id": welcome_id})
 
 		if doc is None:
-			raise InvalidParameterError(f"Welcome channel {welcome_id} has not been defined.")
+			raise InvalidParameterError(
+				f"Welcome channel {welcome_id} has not been defined.")
 		
 		return doc
 
@@ -48,7 +49,8 @@ class _TremaDatabase:
 		doc = collection.find_one({"_id": server_id})
 
 		if doc is None:
-			raise InvalidParameterError(f"Welcome message has yet to be defined for this server.")
+			raise InvalidParameterError(
+				"Welcome message has yet to be defined for this server.")
 		
 		return doc
 

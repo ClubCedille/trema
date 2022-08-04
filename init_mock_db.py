@@ -16,7 +16,7 @@ try:
 	welcome_doc = {
 		"_id": 969352397090586627,
 		"active": True,
-		"welcome_msg": "Heille! Bienvenue au Club CEDILLE! Suis les instructions dans accueil pour avoir accès au reste du serveur!",
+		"welcome_msg": "Heille! Bienvenue au Club CEDILLE! Suis les instructions dans #accueil pour avoir accès au reste du serveur!",
 		"reminder_msg": "Viens dans accueil pour t'attribuer un rôle!",
 		"leave_msg": " a quitté le serveur.",
         "instruct_chan_id": 980209198023467029
