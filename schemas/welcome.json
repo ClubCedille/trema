@@ -6,6 +6,6 @@
         "welcome_msg": {"type": "string"},
 		"reminder_msg": {"type": "string"},
 		"leave_msg": {"type": "string"},
-        "instruct_chan_id": {"type": "number"}
+        "instruct_chan_id": {"type": ["number", "null"]}
     }
 }

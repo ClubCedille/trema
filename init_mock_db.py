@@ -26,6 +26,7 @@ try:
 		"_id": 969352397090586624,
 		"name": "Les Amis de Choupie",
 		"joinedAt": date,
+		"announce_chan_id": 1019348458672488468,
 		"welcome_id": 969352397090586627
 	}
 

@@ -48,7 +48,7 @@ async def on_member_join(member):
 	guild = member.guild
 	sys_chan = guild.system_channel
 	# A channel that contains integration instructions
-	instruct_chan = get_channel_by_name(trema, "accueil")
+	#instruct_chan = get_channel_by_name(trema, "accueil")
 
 	welcome_id = database.get_server_info(guild.id)["welcome_id"]
 	welcome_info = database.get_welcome_info(welcome_id)
