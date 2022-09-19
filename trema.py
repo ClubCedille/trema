@@ -8,9 +8,16 @@ from argparse import ArgumentParser
 import asyncio
 import discord
 
+from discord_util import\
+	get_channel_by_name,\
+	member_roles_are_default,\
+	send_delayed_dm
+
+from trema_database import\
+	get_trema_database
+
 
 _DELAY_SECS_15_MIN = 15 * 60
-_ROLE_EVERYONE = "@everyone"
 
 
 def _make_arg_parser():
@@ -33,50 +40,7 @@ intents.members = True
 
 trema = discord.Bot(intents=intents)
 
-
-def get_channel_by_name(channel_name):
-	return discord.utils.get(trema.get_all_channels(), name=channel_name)
-
-
-def member_roles_are_default(member):
-	"""
-	Determines whether a server member does not have roles besides the default
-	ones: @everyone and the member's name.
-
-	Args:
-		member (discord.member.Member): a server member
-
-	Returns:
-		bool: True if all of member's roles are default one, False otherwise
-	"""
-	member_name = member.name
-
-	for role in member.roles:
-		role_name = role.name
-
-		if role_name != _ROLE_EVERYONE and role_name != member_name:
-			return False
-
-	return True
-
-
-async def send_delayed_dm(user, message, delay, condition=None):
-	"""
-	Sends a direct message (DM) to the specified Discord user after a delay. If
-	a condition is given, it is evaluated when the delay is up and it must
-	return True for the message to be sent.
-
-	Args:
-		user (discord.abc.User): a Discord user
-		message (str): the direct message to send to user
-		delay (int): the time to wait, in seconds, before sending the message
-		condition (function): a Boolean function that takes no argument. The
-			message is sent if it is None or it returns True. Defaults to None.
-	"""
-	await asyncio.sleep(delay)
-
-	if condition is None or condition():
-		await user.send(message)
+database = get_trema_database()
 
 
 @trema.event
@@ -84,18 +48,23 @@ async def on_member_join(member):
 	guild = member.guild
 	sys_chan = guild.system_channel
 	# A channel that contains integration instructions
-	instruct_chan = get_channel_by_name("accueil")
-	welcome_msg =\
-		f"Heille {member.mention}!"\
-		+ f"\nBienvenue au Club CEDILLE. "\
-		+ f"Suis les instructions dans {instruct_chan.mention} "\
-		+ "pour avoir accès au reste du serveur!"
+	#instruct_chan = get_channel_by_name(trema, "accueil")
+
+	welcome_id = database.get_server_info(guild.id)["welcome_id"]
+	welcome_info = database.get_welcome_info(welcome_id)
+	welcome_msg = welcome_info["welcome_msg"]
+	#welcome_msg =\
+	#	f"Heille {member.mention}!"\
+	#	+ f"\nBienvenue au Club CEDILLE. "\
+	#	+ f"Suis les instructions dans {instruct_chan.mention} "\
+	#	+ "pour avoir accès au reste du serveur!"
 	await sys_chan.send(welcome_msg)
 
 	# A reminder if the new member does not select a role
 	if not member.bot:
-		reminder_msg =\
-			f"Viens dans {instruct_chan.mention} pour t'attribuer un rôle!"
+		reminder_msg = welcome_info["reminder_msg"]
+		#reminder_msg =\
+		#	f"Viens dans {instruct_chan.mention} pour t'attribuer un rôle!"
 		msg_condition = lambda: member_roles_are_default(member)
 		reminder_task = asyncio.create_task(send_delayed_dm(
 			member, reminder_msg, _DELAY_SECS_15_MIN, msg_condition))
@@ -106,8 +75,11 @@ async def on_member_join(member):
 async def on_member_remove(member):
 	guild = member.guild
 	sys_chan = guild.system_channel
-	message = f"{member.name} a quitté le serveur."
-	await sys_chan.send(message)
+	welcome_id = database.get_server_info(guild.id)["welcome_id"]
+	welcome_info = database.get_welcome_info(welcome_id)
+	leave_msg = welcome_info["leave_msg"]
+	#leave_msg = f"{member.name} a quitté le serveur."
+	await sys_chan.send(leave_msg)
 
 
 @trema.event

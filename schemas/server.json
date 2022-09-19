@@ -1,0 +1,13 @@
+{
+    "type": "object",
+    "properties": {
+        "_id": {"type": "number"},
+        "name": {"type": "string"},
+        "joinedAt": {
+            "type": "string",
+            "format": "date-time"
+        },
+		"announce_chan_id": {"type": ["number", "null"]},
+        "welcome_id": {"type": "number"}
+    }
+}
