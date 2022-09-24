@@ -49,10 +49,40 @@ class _TremaDatabase:
 		doc = collection.find_one({"_id": server_id})
 
 		if doc is None:
-			raise InvalidParameterError(
-				"Welcome message has yet to be defined for this server.")
-		
+			raise InvalidParameterError("This server is unknown.")
+
 		return doc
+
+
+	def get_server_welcome_id(self, server_id):
+		server_info = self.get_server_info(server_id)
+		welcome_id = server_info.get("welcome_id")
+		return welcome_id
+
+
+	def _set_welcome_attr(self, welcome_id, attr_key, attr_val):
+		welcome_col = self._database["welcome"]
+		query = {"_id": welcome_id}
+		update = {"$set": {attr_key: attr_val}}
+		welcome_col.update_one(query, update)
+
+
+	def set_welcome_chan_id(self, welcome_id, welcome_chan_id):
+		self._set_welcome_attr(welcome_id, "welcome_chan_id", welcome_chan_id)
+
+
+	def set_server_welcome_chan_id(self, server_id, welcome_chan_id):
+		welcome_id = self.get_server_welcome_id(server_id)
+		self.set_welcome_chan_id(welcome_id, welcome_chan_id)
+
+
+	def set_welcome_msg(self, welcome_id, welcome_msg):
+		self._set_welcome_attr(welcome_id, "welcome_msg", welcome_msg)
+
+
+	def set_server_welcome_msg(self, server_id, welcome_msg):
+		welcome_id = self.get_server_welcome_id(server_id)
+		self.set_welcome_msg(welcome_id, welcome_msg)
 
 
 database = _TremaDatabase(
