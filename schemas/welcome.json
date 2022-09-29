@@ -4,8 +4,8 @@
         "_id": {"type": "number"},
         "active": {"type": "boolean"},
         "welcome_msg": {"type": "string"},
-		"reminder_msg": {"type": "string"},
-		"leave_msg": {"type": "string"},
+		"reminder_msg": {"type": ["string", "null"]},
+		"leave_msg": {"type": ["string", "null"]},
         "instruct_chan_id": {"type": ["number", "null"]},
         "welcome_chan_id": {"type": ["number", "null"]}
     }

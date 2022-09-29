@@ -25,7 +25,7 @@ try:
 	server_doc = {
 		"_id": 969352397090586624,
 		"name": "Les Amis de Choupie",
-		"joinedAt": date,
+		"joined_at": date,
 		"announce_chan_id": 1019348458672488468,
 		"welcome_id": 969352397090586627
 	}
@@ -43,7 +43,8 @@ try:
 except AlreadyExistError as e:
 	print(e)
 
-except TypeError as e:
-	print(e)
 except InvalidParameterError as e:
+	print(e)
+
+except TypeError as e:
 	print(e)

@@ -25,7 +25,7 @@ _DELAY_SECS_15_MIN = 15 * 60
 
 def _make_arg_parser():
 	parser = ArgumentParser(description=__doc__)
-	parser.add_argument("-s", "--serveur", type=str,
+	parser.add_argument("-s", "--serveur", type=str, default=None,
 		help="L'identifiant du serveur où ce robot fonctionnera")
 	parser.add_argument("-j", "--jeton", type=str,
 		help="Le jeton d'authentification de ce robot logiciel")
@@ -35,8 +35,8 @@ def _make_arg_parser():
 arg_parser = _make_arg_parser()
 args = arg_parser.parse_args()
 
-server_ids = (args.serveur,)
 bot_token = args.jeton
+server_id = args.serveur
 
 intents = discord.Intents.default()
 intents.members = True
@@ -45,7 +45,15 @@ trema = discord.Bot(intents=intents)
 
 database = get_trema_database()
 
-create_slash_cmds(trema, database, args.serveur)
+if server_id is not None:
+	create_slash_cmds(trema, database, server_id)
+
+
+@trema.event
+async def on_guild_join(guild):
+	database.register_server(guild)
+	create_slash_cmds(trema, database, guild.id)
+
 
 @trema.event
 async def on_member_join(member):
@@ -65,8 +73,8 @@ async def on_member_join(member):
 	await sys_chan.send(welcome_msg)
 
 	# A reminder if the new member does not select a role
-	if not member.bot:
-		reminder_msg = welcome_info["reminder_msg"]
+	reminder_msg = welcome_info["reminder_msg"]
+	if not member.bot and reminder_msg is not None:
 		#reminder_msg =\
 		#	f"Viens dans {instruct_chan.mention} pour t'attribuer un rôle!"
 		msg_condition = lambda: member_roles_are_default(member)
