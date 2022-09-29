@@ -14,10 +14,15 @@ def create_slash_cmds(trema_bot, trema_db, server_id):
 
 	@trema_bot.slash_command(guild_ids=server_ids,
 		name="config", describe=_CONFIG_DESC)
-	async def config(ctx, option: Option(str), value: Option):
+	async def config(ctx,
+			param: Option(str, "Paramètre à régler"),
+			value: Option(str, "Valeur du paramètre")):
+		slash_cmd_config(ctx, trema_db, param, value)
 
-		if option == _ARG_CANAL_ACCUEIL:
-			trema_db.set_server_welcome_chan_id(server_id, value)
 
-		elif option == _ARG_MSG_ACCUEIL:
-			trema_db.set_server_welcome_msg(server_id, value)
+def slash_cmd_config(ctx, trema_db, param, value):
+	if param == _ARG_CANAL_ACCUEIL:
+		trema_db.set_server_welcome_chan_id(ctx.guild_id, int(value))
+
+	elif param == _ARG_MSG_ACCUEIL:
+		trema_db.set_server_welcome_msg(ctx.guild_id, value)

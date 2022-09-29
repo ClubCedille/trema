@@ -33,3 +33,6 @@ Pour quitter le terminal du conteneur ou de la base de données
 ```bash
 exit
 ```
+
+Trëma est exécuté à l'extérieur du conteneur puis se connecte à la base de
+données

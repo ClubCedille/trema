@@ -13,6 +13,9 @@ from discord_util import\
 	member_roles_are_default,\
 	send_delayed_dm
 
+from slash_commands import\
+	create_slash_cmds
+
 from trema_database import\
 	get_trema_database
 
@@ -42,6 +45,7 @@ trema = discord.Bot(intents=intents)
 
 database = get_trema_database()
 
+create_slash_cmds(trema, database, args.serveur)
 
 @trema.event
 async def on_member_join(member):
