@@ -40,9 +40,9 @@ class _TremaDatabase:
 		if isinstance(collection, str):
 			collection = self._get_collection(collection)
 
-		existing_doc = None
+		existing_doc = "not None"
 
-		while existing_doc is None:
+		while existing_doc is not None:
 			rand_id = randint(0, maxsize)
 			existing_doc = collection.find_one({"_id": rand_id})
 
