@@ -58,13 +58,12 @@ async def on_guild_join(guild):
 @trema.event
 async def on_member_join(member):
 	guild = member.guild
+	guild_id = guild.id
 	sys_chan = guild.system_channel
 	# A channel that contains integration instructions
 	#instruct_chan = get_channel_by_name(trema, "accueil")
 
-	welcome_id = database.get_server_info(guild.id)["welcome_id"]
-	welcome_info = database.get_welcome_info(welcome_id)
-	welcome_msg = welcome_info["welcome_msg"]
+	welcome_msg = database.get_server_welcome_msg(guild_id)
 	#welcome_msg =\
 	#	f"Heille {member.mention}!"\
 	#	+ f"\nBienvenue au Club CEDILLE. "\
@@ -73,7 +72,7 @@ async def on_member_join(member):
 	await sys_chan.send(welcome_msg)
 
 	# A reminder if the new member does not select a role
-	reminder_msg = welcome_info["reminder_msg"]
+	reminder_msg = database.get_server_reminder_msg(guild_id)
 	if not member.bot and reminder_msg is not None:
 		#reminder_msg =\
 		#	f"Viens dans {instruct_chan.mention} pour t'attribuer un rôle!"
@@ -86,10 +85,9 @@ async def on_member_join(member):
 @trema.event
 async def on_member_remove(member):
 	guild = member.guild
+	guild_id = guild.id
 	sys_chan = guild.system_channel
-	welcome_id = database.get_server_info(guild.id)["welcome_id"]
-	welcome_info = database.get_welcome_info(welcome_id)
-	leave_msg = welcome_info["leave_msg"]
+	leave_msg = database.get_server_leave_msg(guild_id)
 	#leave_msg = f"{member.name} a quitté le serveur."
 	if leave_msg is not None:
 		await sys_chan.send(leave_msg)
