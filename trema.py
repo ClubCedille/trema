@@ -108,6 +108,8 @@ async def config(ctx,
 	embed_title = "Paramètre mis à jour: "
 
 	if param == "canalaccueil":
+		embed_title += "canal d'accueil"
+		prev_value = database.get_server_welcome_chan_id(ctx.guild_id)
 		database.set_server_welcome_chan_id(ctx.guild_id, int(value))
 
 	elif param == "msgaccueil":

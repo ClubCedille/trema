@@ -70,6 +70,11 @@ class _TremaDatabase:
 
 		return doc
 
+	def get_server_welcome_chan_id(self, server_id):
+		welcome_id = self.get_server_welcome_id(server_id)
+		welcome_chan_id = self.get_welcome_chan_id(welcome_id)
+		return welcome_chan_id
+
 	def get_server_welcome_id(self, server_id):
 		server_info = self.get_server_info(server_id)
 		welcome_id = server_info.get("welcome_id")
@@ -84,6 +89,9 @@ class _TremaDatabase:
 		welcome_col = self._get_collection("welcome")
 		welcome_doc = welcome_col.find_one({"_id": welcome_id})
 		return welcome_doc.get(attr_key)
+
+	def get_welcome_chan_id(self, welcome_id):
+		return self._get_welcome_attr(welcome_id, "welcome_chan_id")
 
 	def get_welcome_msg(self, welcome_id):
 		return self._get_welcome_attr(welcome_id, "welcome_msg")
