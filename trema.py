@@ -13,8 +13,8 @@ from discord_util import\
 	member_roles_are_default,\
 	send_delayed_dm
 
-from slash_commands import\
-	create_slash_cmds
+#from slash_commands import\
+#	create_slash_cmds
 
 from trema_database import\
 	get_trema_database
@@ -45,14 +45,14 @@ trema = discord.Bot(intents=intents)
 
 database = get_trema_database()
 
-if server_id is not None:
-	create_slash_cmds(trema, database, server_id)
+#if server_id is not None:
+#	create_slash_cmds(trema, database, server_id)
 
 
 @trema.event
 async def on_guild_join(guild):
 	database.register_server(guild)
-	create_slash_cmds(trema, database, guild.id)
+#	create_slash_cmds(trema, database, guild.id)
 
 
 @trema.event
@@ -91,12 +91,25 @@ async def on_member_remove(member):
 	welcome_info = database.get_welcome_info(welcome_id)
 	leave_msg = welcome_info["leave_msg"]
 	#leave_msg = f"{member.name} a quitté le serveur."
-	await sys_chan.send(leave_msg)
+	if leave_msg is not None:
+		await sys_chan.send(leave_msg)
 
 
 @trema.event
 async def on_ready():
     print(f"{trema.user} fonctionne.")
+
+
+@trema.slash_command(guild_ids=(server_id,),
+	name="config", describe="")
+async def config(ctx,
+		param: discord.Option(str, "Paramètre à régler"),
+		value: discord.Option(str, "Valeur du paramètre")):
+	if param == "canalaccueil":
+		database.set_server_welcome_chan_id(ctx.guild_id, int(value))
+
+	elif param == "msgaccueil":
+		database.set_server_welcome_msg(ctx.guild_id, value)
 
 
 trema.run(bot_token)
