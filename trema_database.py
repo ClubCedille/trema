@@ -45,6 +45,9 @@ class _TremaDatabase:
 		argument is a collection object, this method will return the collection
 		object.
 
+		If argument collection is the name of an unexisting collection, a
+		collection with this name is created.
+
 		Args:
 			collection (str or pymongo.collection.Collection): a collection
 				name or a collection object
