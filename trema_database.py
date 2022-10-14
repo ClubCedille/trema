@@ -75,6 +75,19 @@ class _TremaDatabase:
 		welcome_id = server_info.get("welcome_id")
 		return welcome_id
 
+	def get_server_welcome_msg(self, server_id):
+		welcome_id = self.get_server_welcome_id(server_id)
+		welcome_msg = self.get_welcome_msg(welcome_id)
+		return welcome_msg
+
+	def _get_welcome_attr(self, welcome_id, attr_key):
+		welcome_col = self._get_collection("welcome")
+		welcome_doc = welcome_col.find_one({"_id": welcome_id})
+		return welcome_doc.get(attr_key)
+
+	def get_welcome_msg(self, welcome_id):
+		return self._get_welcome_attr(welcome_id, "welcome_msg")
+
 	def _id_exists(self, id, collection):
 		if isinstance(collection, str):
 			collection = self._get_collection(collection)

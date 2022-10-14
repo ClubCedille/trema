@@ -105,11 +105,22 @@ async def on_ready():
 async def config(ctx,
 		param: discord.Option(str, "Paramètre à régler"),
 		value: discord.Option(str, "Valeur du paramètre")):
+	embed_title = "Paramètre mis à jour: "
+
 	if param == "canalaccueil":
 		database.set_server_welcome_chan_id(ctx.guild_id, int(value))
 
 	elif param == "msgaccueil":
+		embed_title += "message d'accueil"
+		prev_value = database.get_server_welcome_msg(ctx.guild_id)
 		database.set_server_welcome_msg(ctx.guild_id, value)
+
+	confirm_embed = discord.Embed(
+		title=embed_title,
+		description=f"Valeur précédente: {prev_value}\nNouvelle valeur: {value}",
+		color=discord.Color.green())
+
+	await ctx.send(embed=confirm_embed)
 
 
 trema.run(bot_token)
