@@ -100,15 +100,6 @@ class _TremaDatabase:
 		attr_value = self._get_document_attr("server", server_id, attr_key)
 		return attr_value
 
-	def get_server_info(self, server_id):
-		collection = self._get_collection("server")
-		doc = collection.find_one({"_id": server_id})
-
-		if doc is None:
-			raise InvalidParameterError("This server is unknown.")
-
-		return doc
-
 	def get_server_leave_msg(self, server_id):
 		welcome_id = self.get_server_welcome_id(server_id)
 		leave_msg = self.get_leave_msg(welcome_id)
@@ -139,16 +130,6 @@ class _TremaDatabase:
 
 	def get_welcome_chan_id(self, welcome_id):
 		return self._get_welcome_attr(welcome_id, "welcome_chan_id")
-
-	def get_welcome_info(self, welcome_id):
-		collection = self._get_collection("welcome")
-		doc = collection.find_one({"_id": welcome_id})
-
-		if doc is None:
-			raise InvalidParameterError(
-				f"Welcome channel {welcome_id} has not been defined.")
-		
-		return doc
 
 	def get_welcome_msg(self, welcome_id):
 		return self._get_welcome_attr(welcome_id, "welcome_msg")

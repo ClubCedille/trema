@@ -36,10 +36,6 @@ try:
 	trema_database.add_document(col_welcome, welcome_doc)
 	trema_database.add_document(col_server, server_doc)
 
-	doc = trema_database.get_welcome_info(969352397090586627)
-
-	print(doc["welcome_msg"])
-
 except AlreadyExistError as e:
 	print(e)
 
