@@ -25,26 +25,34 @@ def create_slash_cmds(trema_bot, trema_db, server_ids):
 
 
 async def slash_cmd_config(ctx, trema_db, param, value):
+	guild = ctx.guild
+	guild_id = ctx.guild_id
 	embed_title = "Paramètre mis à jour: "
 
 	if param == "canalaccueil":
 		welcome_chan_id = int(value)
 		embed_title += "canal d'accueil"
 
-		prev_value = trema_db.get_server_welcome_chan_id(ctx.guild_id)
-		welcome_chan_name = get_channel_name(ctx.guild, prev_value)
+		prev_value = trema_db.get_server_welcome_chan_id(guild_id)
+		welcome_chan_name = get_channel_name(guild, prev_value)
 		prev_value = f"{welcome_chan_name} ({prev_value})"
 
-		welcome_chan_name = get_channel_name(ctx.guild, welcome_chan_id)
+		welcome_chan_name = get_channel_name(guild, welcome_chan_id)
 		updated_value = f"{welcome_chan_name} ({welcome_chan_id})"
 
-		trema_db.set_server_welcome_chan_id(ctx.guild_id, welcome_chan_id)
+		trema_db.set_server_welcome_chan_id(guild_id, welcome_chan_id)
 
 	elif param == "msgaccueil":
 		embed_title += "message d'accueil"
-		prev_value = trema_db.get_server_welcome_msg(ctx.guild_id)
+		prev_value = trema_db.get_server_welcome_msg(guild_id)
 		updated_value = value
-		trema_db.set_server_welcome_msg(ctx.guild_id, value)
+		trema_db.set_server_welcome_msg(guild_id, value)
+
+	elif param == "msgdepart":
+		embed_title += "message de départ"
+		prev_value = trema_db.get_server_leave_msg(guild_id)
+		updated_value = value
+		trema_db.set_server_leave_msg(guild_id, value)
 
 	else:
 		return

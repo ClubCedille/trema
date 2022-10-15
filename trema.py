@@ -92,8 +92,7 @@ async def on_member_remove(member):
 	guild = member.guild
 	guild_id = guild.id
 	welcome_chan = get_welcome_chan(guild)
-	#leave_msg = database.get_server_leave_msg(guild_id)
-	leave_msg = f"{member.name} a quitté le serveur."
+	leave_msg = database.get_server_leave_msg(guild_id)
 	if leave_msg is not None:
 		await welcome_chan.send(leave_msg)
 

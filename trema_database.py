@@ -192,22 +192,29 @@ class _TremaDatabase:
 		update = {"$set": {attr_key: attr_val}}
 		collection.update_one(query, update)
 
+	def set_leave_msg(self, welcome_id, leave_msg):
+		self._set_welcome_attr(welcome_id, "leave_msg", leave_msg)
+
+	def set_server_leave_msg(self, server_id, leave_msg):
+		welcome_id = self._get_server_welcome_id(server_id)
+		self.set_leave_msg(welcome_id, leave_msg)
+
+	def set_server_welcome_chan_id(self, server_id, welcome_chan_id):
+		welcome_id = self._get_server_welcome_id(server_id)
+		self.set_welcome_chan_id(welcome_id, welcome_chan_id)
+
+	def set_server_welcome_msg(self, server_id, welcome_msg):
+		welcome_id = self._get_server_welcome_id(server_id)
+		self.set_welcome_msg(welcome_id, welcome_msg)
+
 	def _set_welcome_attr(self, welcome_id, attr_key, attr_val):
 		self._set_document_attr("welcome", welcome_id, attr_key, attr_val)
 
 	def set_welcome_chan_id(self, welcome_id, welcome_chan_id):
 		self._set_welcome_attr(welcome_id, "welcome_chan_id", welcome_chan_id)
 
-	def set_server_welcome_chan_id(self, server_id, welcome_chan_id):
-		welcome_id = self._get_server_welcome_id(server_id)
-		self.set_welcome_chan_id(welcome_id, welcome_chan_id)
-
 	def set_welcome_msg(self, welcome_id, welcome_msg):
 		self._set_welcome_attr(welcome_id, "welcome_msg", welcome_msg)
-
-	def set_server_welcome_msg(self, server_id, welcome_msg):
-		welcome_id = self._get_server_welcome_id(server_id)
-		self.set_welcome_msg(welcome_id, welcome_msg)
 
 
 database = _TremaDatabase(
