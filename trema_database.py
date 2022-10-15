@@ -103,27 +103,35 @@ class _TremaDatabase:
 		attr_value = self._get_document_attr("server", server_id, attr_key)
 		return attr_value
 
+	def get_server_ids(self):
+		server_col = self._get_collection("server")
+		server_ids = list()
+		for server_doc in server_col.find():
+			server_id = server_doc["_id"]
+			server_ids.append(server_id)
+		return server_ids
+
 	def get_server_leave_msg(self, server_id):
-		welcome_id = self.get_server_welcome_id(server_id)
+		welcome_id = self._get_server_welcome_id(server_id)
 		leave_msg = self.get_leave_msg(welcome_id)
 		return leave_msg
 
 	def get_server_reminder_msg(self, server_id):
-		welcome_id = self.get_server_welcome_id(server_id)
+		welcome_id = self._get_server_welcome_id(server_id)
 		reminder_msg = self.get_reminder_msg(welcome_id)
 		return reminder_msg
 
 	def get_server_welcome_chan_id(self, server_id):
-		welcome_id = self.get_server_welcome_id(server_id)
+		welcome_id = self._get_server_welcome_id(server_id)
 		welcome_chan_id = self.get_welcome_chan_id(welcome_id)
 		return welcome_chan_id
 
-	def get_server_welcome_id(self, server_id):
+	def _get_server_welcome_id(self, server_id):
 		welcome_id = self._get_server_attr(server_id, "welcome_id")
 		return welcome_id
 
 	def get_server_welcome_msg(self, server_id):
-		welcome_id = self.get_server_welcome_id(server_id)
+		welcome_id = self._get_server_welcome_id(server_id)
 		welcome_msg = self.get_welcome_msg(welcome_id)
 		return welcome_msg
 
@@ -144,8 +152,18 @@ class _TremaDatabase:
 		return existing_doc is not None
 
 	def register_server(self, server):
+		"""
+		If the server is not known yet, this method registers it in the
+		database. The method attributes default data to the server.
+
+		Args:
+			server (discord.Guild): any Discord server
+
+		Returns:
+			bool: True if the server was already known, False otherwise
+		"""
 		if self._id_exists(server.id, "server"):
-			return False
+			return True
 
 		welcome_id = self.generate_rand_id("welcome")
 		welcome_doc = dict()
@@ -166,7 +184,7 @@ class _TremaDatabase:
 		server_doc["welcome_id"] = welcome_id
 		self.add_document("server", server_doc)
 
-		return True
+		return False
 
 	def _set_document_attr(self, collection, doc_id, attr_key, attr_val):
 		collection = self._ensure_col_is_obj(collection)
@@ -181,14 +199,14 @@ class _TremaDatabase:
 		self._set_welcome_attr(welcome_id, "welcome_chan_id", welcome_chan_id)
 
 	def set_server_welcome_chan_id(self, server_id, welcome_chan_id):
-		welcome_id = self.get_server_welcome_id(server_id)
+		welcome_id = self._get_server_welcome_id(server_id)
 		self.set_welcome_chan_id(welcome_id, welcome_chan_id)
 
 	def set_welcome_msg(self, welcome_id, welcome_msg):
 		self._set_welcome_attr(welcome_id, "welcome_msg", welcome_msg)
 
 	def set_server_welcome_msg(self, server_id, welcome_msg):
-		welcome_id = self.get_server_welcome_id(server_id)
+		welcome_id = self._get_server_welcome_id(server_id)
 		self.set_welcome_msg(welcome_id, welcome_msg)
 
 

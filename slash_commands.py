@@ -15,9 +15,7 @@ _CONFIG_DESC = "Configurez les options de Trëma pour votre serveur.\n"\
 	+ _ARG_MSG_ACCUEIL + " (str): le message d'acceuil pour les nouveaux membres"
 
 
-def create_slash_cmds(trema_bot, trema_db, server_id):
-	server_ids = (server_id,)
-
+def create_slash_cmds(trema_bot, trema_db, server_ids):
 	@trema_bot.slash_command(guild_ids=server_ids,
 		name="config", describe=_CONFIG_DESC)
 	async def config(ctx,

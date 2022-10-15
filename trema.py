@@ -25,8 +25,6 @@ _DELAY_SECS_15_MIN = 15 * 60
 
 def _make_arg_parser():
 	parser = ArgumentParser(description=__doc__)
-	parser.add_argument("-s", "--serveur", type=str, default=None,
-		help="L'identifiant du serveur où ce robot fonctionnera")
 	parser.add_argument("-j", "--jeton", type=str,
 		help="Le jeton d'authentification de ce robot logiciel")
 	return parser
@@ -36,7 +34,6 @@ arg_parser = _make_arg_parser()
 args = arg_parser.parse_args()
 
 bot_token = args.jeton
-server_id = args.serveur
 
 intents = discord.Intents.default()
 intents.members = True
@@ -44,9 +41,9 @@ intents.members = True
 trema = discord.Bot(intents=intents)
 
 database = get_trema_database()
+server_ids = database.get_server_ids()
 
-if server_id is not None:
-	create_slash_cmds(trema, database, server_id)
+create_slash_cmds(trema, database, server_ids)
 
 
 def get_welcome_chan(guild):
@@ -59,7 +56,8 @@ def get_welcome_chan(guild):
 @trema.event
 async def on_guild_join(guild):
 	database.register_server(guild)
-#	create_slash_cmds(trema, database, guild.id)
+	# The commands must be created even if the server is already registered.
+	create_slash_cmds(trema, database, (guild.id,))
 
 
 @trema.event
