@@ -55,9 +55,11 @@ def get_welcome_chan(guild):
 
 @trema.event
 async def on_guild_join(guild):
-	database.register_server(guild)
-	# The commands must be created even if the server is already registered.
-	create_slash_cmds(trema, database, (guild.id,))
+	server_known = database.register_server(guild)
+
+	if not server_known:
+		# The commands are created at the start for the known servers.
+		create_slash_cmds(trema, database, (guild.id,))
 
 
 @trema.event
