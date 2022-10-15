@@ -10,12 +10,11 @@ import discord
 
 from discord_util import\
 	get_channel_by_name,\
-	get_channel_name,\
 	member_roles_are_default,\
 	send_delayed_dm
 
-#from slash_commands import\
-#	create_slash_cmds
+from slash_commands import\
+	create_slash_cmds
 
 from trema_database import\
 	get_trema_database
@@ -46,8 +45,8 @@ trema = discord.Bot(intents=intents)
 
 database = get_trema_database()
 
-#if server_id is not None:
-#	create_slash_cmds(trema, database, server_id)
+if server_id is not None:
+	create_slash_cmds(trema, database, server_id)
 
 
 def get_welcome_chan(guild):
@@ -93,8 +92,8 @@ async def on_member_remove(member):
 	guild = member.guild
 	guild_id = guild.id
 	welcome_chan = get_welcome_chan(guild)
-	leave_msg = database.get_server_leave_msg(guild_id)
-	#leave_msg = f"{member.name} a quitté le serveur."
+	#leave_msg = database.get_server_leave_msg(guild_id)
+	leave_msg = f"{member.name} a quitté le serveur."
 	if leave_msg is not None:
 		await welcome_chan.send(leave_msg)
 
@@ -102,43 +101,6 @@ async def on_member_remove(member):
 @trema.event
 async def on_ready():
     print(f"{trema.user} fonctionne.")
-
-
-@trema.slash_command(guild_ids=(server_id,),
-	name="config", describe="")
-async def config(ctx,
-		param: discord.Option(str, "Paramètre à régler"),
-		value: discord.Option(str, "Valeur du paramètre")):
-	embed_title = "Paramètre mis à jour: "
-
-	if param == "canalaccueil":
-		welcome_chan_id = int(value)
-		embed_title += "canal d'accueil"
-
-		prev_value = database.get_server_welcome_chan_id(ctx.guild_id)
-		welcome_chan_name = get_channel_name(ctx.guild, prev_value)
-		prev_value = f"{welcome_chan_name} ({prev_value})"
-
-		welcome_chan_name = get_channel_name(ctx.guild, welcome_chan_id)
-		updated_value = f"{welcome_chan_name} ({welcome_chan_id})"
-
-		database.set_server_welcome_chan_id(ctx.guild_id, welcome_chan_id)
-
-	elif param == "msgaccueil":
-		embed_title += "message d'accueil"
-		prev_value = database.get_server_welcome_msg(ctx.guild_id)
-		updated_value = value
-		database.set_server_welcome_msg(ctx.guild_id, value)
-
-	else:
-		return
-
-	confirm_embed = discord.Embed(
-		title=embed_title,
-		description=f"Nouvelle valeur: {updated_value}\nValeur précédente: {prev_value}",
-		color=discord.Color.green())
-
-	await ctx.send(embed=confirm_embed)
 
 
 trema.run(bot_token)

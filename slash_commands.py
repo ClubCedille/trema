@@ -23,7 +23,7 @@ def create_slash_cmds(trema_bot, trema_db, server_id):
 	async def config(ctx,
 			param: Option(str, "Paramètre à régler"),
 			value: Option(str, "Valeur du paramètre")):
-		slash_cmd_config(ctx, trema_db, param, value)
+		await slash_cmd_config(ctx, trema_db, param, value)
 
 
 async def slash_cmd_config(ctx, trema_db, param, value):
