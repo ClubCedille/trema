@@ -9,15 +9,14 @@ from discord_util import\
 
 _ARG_CANAL_ACCUEIL = "canalaccueil"
 _ARG_MSG_ACCUEIL = "msgaccueil"
+_ARG_MSG_DEPART	 = "msgdepart"
 
-_CONFIG_DESC = "Configurez les options de Trëma pour votre serveur.\n"\
-	+ _ARG_CANAL_ACCUEIL + " (int): l'identifiant du canal où les nouveaux membres reçoivent un message à leur arrivée.\n"\
-	+ _ARG_MSG_ACCUEIL + " (str): le message d'acceuil pour les nouveaux membres"
+_CONFIG_DESC = "Configurez les options de Trëma pour votre serveur."
 
 
 def create_slash_cmds(trema_bot, trema_db, server_ids):
 	@trema_bot.slash_command(guild_ids=server_ids,
-		name="config", describe=_CONFIG_DESC)
+		name="config", description=_CONFIG_DESC)
 	async def config(ctx,
 			param: Option(str, "Paramètre à régler"),
 			value: Option(str, "Valeur du paramètre")):
@@ -29,7 +28,7 @@ async def slash_cmd_config(ctx, trema_db, param, value):
 	guild_id = ctx.guild_id
 	embed_title = "Paramètre mis à jour: "
 
-	if param == "canalaccueil":
+	if param == _ARG_CANAL_ACCUEIL:
 		welcome_chan_id = int(value)
 		embed_title += "canal d'accueil"
 
@@ -42,13 +41,13 @@ async def slash_cmd_config(ctx, trema_db, param, value):
 
 		trema_db.set_server_welcome_chan_id(guild_id, welcome_chan_id)
 
-	elif param == "msgaccueil":
+	elif param == _ARG_MSG_ACCUEIL:
 		embed_title += "message d'accueil"
 		prev_value = trema_db.get_server_welcome_msg(guild_id)
 		updated_value = value
 		trema_db.set_server_welcome_msg(guild_id, value)
 
-	elif param == "msgdepart":
+	elif param == _ARG_MSG_DEPART:
 		embed_title += "message de départ"
 		prev_value = trema_db.get_server_leave_msg(guild_id)
 		updated_value = value
