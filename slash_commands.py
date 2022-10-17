@@ -20,10 +20,10 @@ def create_slash_cmds(trema_bot, trema_db, server_ids):
 	async def config(ctx,
 			param: Option(str, "Paramètre à régler"),
 			value: Option(str, "Valeur du paramètre")):
-		await slash_cmd_config(ctx, trema_db, param, value)
+		await _slash_cmd_config(ctx, trema_db, param, value)
 
 
-async def slash_cmd_config(ctx, trema_db, param, value):
+async def _slash_cmd_config(ctx, trema_db, param, value):
 	guild = ctx.guild
 	guild_id = ctx.guild_id
 	embed_title = "Paramètre mis à jour: "
