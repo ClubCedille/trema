@@ -2,7 +2,6 @@
     "type": "object",
     "properties": {
         "_id": {"type": "number"},
-        "active": {"type": "boolean"},
         "welcome_msg": {"type": "string"},
 		"reminder_msg": {"type": ["string", "null"]},
 		"leave_msg": {"type": ["string", "null"]},

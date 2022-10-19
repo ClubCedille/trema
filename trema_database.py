@@ -168,7 +168,6 @@ class _TremaDatabase:
 		welcome_id = self.generate_rand_id("welcome")
 		welcome_doc = dict()
 		welcome_doc["_id"] = welcome_id
-		welcome_doc["active"] = True
 		welcome_doc["welcome_msg"] = "Bienvenue au club!"
 		welcome_doc["reminder_msg"] = None
 		welcome_doc["leave_msg"] = None
