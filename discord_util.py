@@ -19,6 +19,26 @@ def get_channel_by_name(bot, channel_name):
 	return discord.utils.get(bot.get_all_channels(), name=channel_name)
 
 
+def get_channel_name(guild, channel_id):
+	"""
+	Given a guild and the ID of one of its channels, this method provides the
+	channel's name.
+
+	Args:
+		guild: a Discord guild
+		channel_id (int): the ID of one of guild's channels
+
+	Returns:
+		str: the given channel's name or None if guild does not have channel_id
+	"""
+	channel = guild.get_channel(channel_id)
+
+	if channel is None:
+		return None
+
+	return channel.name
+
+
 def member_roles_are_default(member):
 	"""
 	Determines whether a server member does not have roles besides the default
