@@ -41,9 +41,8 @@ intents.members = True
 trema = discord.Bot(intents=intents)
 
 database = get_trema_database()
-server_ids = database.get_server_ids()
 
-create_slash_cmds(trema, database, server_ids)
+create_slash_cmds(trema, database)
 
 
 def get_welcome_chan(guild):
