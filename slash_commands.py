@@ -45,11 +45,24 @@ def create_slash_cmds(trema_bot, trema_db):
 		embed_title = _make_cmd_full_name(ctx.command)
 
 		prev_value = trema_db.get_server_welcome_msg(guild_id)
-		updated_value = message
 		trema_db.set_server_welcome_msg(guild_id, message)
 
 		confirm_embed = _make_config_confirm_embed(
-			embed_title, updated_value, prev_value)
+			embed_title, message, prev_value)
+
+		await ctx.send(embed=confirm_embed)
+
+	@config.command(name="msgdepart",
+		description="Changer le message affiché lorsqu'un membre quitte le serveur")
+	async def config_leave_msg(ctx, message: Option(str, "Nouveau message de départ")):
+		guild_id = ctx.guild_id
+		embed_title = _make_cmd_full_name(ctx.command)
+
+		prev_value = trema_db.get_server_leave_msg(guild_id)
+		trema_db.set_server_leave_msg(guild_id, message)
+
+		confirm_embed = _make_config_confirm_embed(
+			embed_title, message, prev_value)
 
 		await ctx.send(embed=confirm_embed)
 
