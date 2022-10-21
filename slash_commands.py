@@ -22,7 +22,7 @@ def create_slash_cmds(trema_bot, trema_db):
 
 		guild = ctx.guild
 		guild_id = ctx.guild_id
-		embed_title = "Paramètre mis à jour: canal d'accueil"
+		embed_title = _make_cmd_full_name(ctx.command)
 
 		prev_value = trema_db.get_server_welcome_chan_id(guild_id)
 		welcome_chan_name = get_channel_name(guild, prev_value)
@@ -42,7 +42,7 @@ def create_slash_cmds(trema_bot, trema_db):
 			desciption="Changer le message d'accueil des nouveaux membres")
 	async def config_welcome_msg(ctx, message: Option(str, "Nouveau message d'accueil")):
 		guild_id = ctx.guild_id
-		embed_title = "Paramètre mis à jour: message d'accueil"
+		embed_title = _make_cmd_full_name(ctx.command)
 
 		prev_value = trema_db.get_server_welcome_msg(guild_id)
 		updated_value = message
@@ -54,6 +54,18 @@ def create_slash_cmds(trema_bot, trema_db):
 		await ctx.send(embed=confirm_embed)
 
 	trema_bot.add_application_command(config)
+
+
+def _make_cmd_full_name(cmd):
+	names = list()
+
+	while cmd is not None:
+		names.insert(0, cmd.name)
+		cmd = cmd.parent
+
+	full_name = "/" + " ".join(names)
+
+	return full_name
 
 
 def _make_config_confirm_embed(title, updated_value, prev_value):
