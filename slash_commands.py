@@ -29,14 +29,22 @@ def create_slash_cmds(trema_bot, trema_db):
 		prev_value = f"{welcome_chan_name} ({prev_value})"
 
 		welcome_chan_name = get_channel_name(guild, id_accueil)
-		updated_value = f"{welcome_chan_name} ({id_accueil})"
 
-		trema_db.set_server_welcome_chan_id(guild_id, id_accueil)
+		if welcome_chan_name is None:
+			error_embed = _make_config_error_embed(embed_title, prev_value,
+				f"{guild.name} n'a pas de canal {id_accueil}.")
+			
+			await ctx.send(embed=error_embed)
 
-		confirm_embed = _make_config_confirm_embed(
-			embed_title, updated_value, prev_value)
+		else:
+			updated_value = f"{welcome_chan_name} ({id_accueil})"
 
-		await ctx.send(embed=confirm_embed)
+			trema_db.set_server_welcome_chan_id(guild_id, id_accueil)
+
+			confirm_embed = _make_config_confirm_embed(
+				embed_title, updated_value, prev_value)
+
+			await ctx.send(embed=confirm_embed)
 
 	@config.command(name="msgaccueil",
 			desciption="Changer le message d'accueil des nouveaux membres")
@@ -83,7 +91,15 @@ def _make_cmd_full_name(cmd):
 
 def _make_config_confirm_embed(title, updated_value, prev_value):
 	confirm_embed = Embed(
-	title=title,
-	description=f"Nouvelle valeur: {updated_value}\nValeur précédente: {prev_value}",
-	color=Color.green())
+		title=title,
+		description=f"Nouvelle valeur: {updated_value}\nValeur précédente: {prev_value}",
+		color=Color.green())
 	return confirm_embed
+
+
+def _make_config_error_embed(title, current_value, error_msg):
+	error_embed = Embed(
+		title=title,
+		description=f"ERREUR!\n{error_msg}\n\nParamètre actuel: {current_value}",
+		color=Color.red())
+	return error_embed
