@@ -13,7 +13,6 @@ _SPACE = " "
 
 
 def create_slash_cmds(trema_bot, trema_db):
-
 	config = SlashCommandGroup(name="config",
 		description="Configurez les options de Trëma pour votre serveur.")
 
