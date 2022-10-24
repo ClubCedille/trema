@@ -38,11 +38,8 @@ def create_slash_cmds(trema_bot, trema_db):
 			pass
 
 		if not isinstance(id_accueil, int) or id_accueil < 0:
-			error_msg_base =\
-				"L'identifiant des canaux est un nombre entier positif.\n"\
-				+ "Argument reçu: "
 			response_embed = _make_config_error_embed(embed_title, prev_value,
-				error_msg_base + str(id_accueil))
+				"L'identifiant des canaux est un nombre entier positif.")
 
 		elif selected_chan is None:
 			response_embed = _make_config_error_embed(embed_title, prev_value,
