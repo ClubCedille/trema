@@ -29,7 +29,7 @@ def create_slash_cmds(trema_bot, trema_db):
 		try:
 			# The command argument is a string.
 			id_accueil = int(id_accueil)
-			welcome_chan_name = get_channel_name(guild, id_accueil)
+			selected_chan = guild.get_channel(id_accueil)
 
 		except ValueError:
 			pass
@@ -41,15 +41,15 @@ def create_slash_cmds(trema_bot, trema_db):
 			response_embed = _make_config_error_embed(embed_title, prev_value,
 				error_msg_base + str(id_accueil))
 
-		elif welcome_chan_name is None:
+		elif selected_chan is None:
 			response_embed = _make_config_error_embed(embed_title, prev_value,
 				f"{guild.name} n'a pas de canal {id_accueil}.")
 
 		else:
-			updated_value = f"{welcome_chan_name} ({id_accueil})"
-
 			trema_db.set_server_welcome_chan_id(guild_id, id_accueil)
-
+			confirmed_chan_id = trema_db.get_server_welcome_chan_id(guild_id)
+			confirmed_chan_name = selected_chan.name
+			updated_value = f"{confirmed_chan_name} ({confirmed_chan_id})"
 			response_embed = _make_config_confirm_embed(
 				embed_title, updated_value, prev_value)
 
@@ -63,9 +63,10 @@ def create_slash_cmds(trema_bot, trema_db):
 
 		prev_value = trema_db.get_server_welcome_msg(guild_id)
 		trema_db.set_server_welcome_msg(guild_id, message)
+		confirmed_msg = trema_db.get_server_welcome_msg(guild_id)
 
 		confirm_embed = _make_config_confirm_embed(
-			embed_title, message, prev_value)
+			embed_title, confirmed_msg, prev_value)
 
 		await ctx.send(embed=confirm_embed)
 
@@ -77,9 +78,10 @@ def create_slash_cmds(trema_bot, trema_db):
 
 		prev_value = trema_db.get_server_leave_msg(guild_id)
 		trema_db.set_server_leave_msg(guild_id, message)
+		confirmed_msg = trema_db.get_server_leave_msg(guild_id)
 
 		confirm_embed = _make_config_confirm_embed(
-			embed_title, message, prev_value)
+			embed_title, confirmed_msg, prev_value)
 
 		await ctx.send(embed=confirm_embed)
 
@@ -109,6 +111,7 @@ def _make_config_confirm_embed(title, updated_value, prev_value):
 def _make_config_error_embed(title, current_value, error_msg):
 	error_embed = Embed(
 		title=title,
-		description=f"ERREUR!\n{error_msg}\n\nParamètre actuel: {current_value}",
+		description=
+			f"ERREUR!\n{error_msg}\n\nParamètre actuel: {current_value}",
 		color=Color.red())
 	return error_embed
