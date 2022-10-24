@@ -58,7 +58,7 @@ async def on_guild_join(guild):
 
 	if not server_known:
 		# The commands are created at the start for the known servers.
-		create_slash_cmds(trema, database, (guild.id,))
+		create_slash_cmds(trema, database)
 
 
 @trema.event
