@@ -18,8 +18,6 @@ def create_slash_cmds(trema_bot, trema_db):
 	async def config_welcome_chan(ctx,
 			id_accueil: Option(str,
 			"Identifiant du canal où les nouveaux membres reçoivent le message d'accueil")):
-		id_accueil = int(id_accueil)
-
 		guild = ctx.guild
 		guild_id = ctx.guild_id
 		embed_title = _make_cmd_full_name(ctx.command)
@@ -30,10 +28,26 @@ def create_slash_cmds(trema_bot, trema_db):
 
 		welcome_chan_name = get_channel_name(guild, id_accueil)
 
-		if welcome_chan_name is None:
+		try:
+			# The command argument is a string.
+			id_accueil = int(id_accueil)
+
+		except ValueError:
+			pass
+
+		if not isinstance(id_accueil, int) or id_accueil < 0:
+			error_msg_base =\
+				"L'identifiant des canaux est un nombre entier positif.\n"\
+				+ "Argument reçu: "
+			error_embed = _make_config_error_embed(embed_title, prev_value,
+				error_msg_base + str(id_accueil))
+
+			await ctx.send(embed=error_embed)
+
+		elif welcome_chan_name is None:
 			error_embed = _make_config_error_embed(embed_title, prev_value,
 				f"{guild.name} n'a pas de canal {id_accueil}.")
-			
+
 			await ctx.send(embed=error_embed)
 
 		else:
