@@ -4,7 +4,7 @@ from discord_util import\
 	member_roles_are_default,\
 	send_delayed_dm
 
-from msg_format import\
+from text_format import\
 	make_mention
 
 
