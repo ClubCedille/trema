@@ -1,15 +1,24 @@
 import re
 
 
-# The member concerned by an event
-_PATTERN_EVENT_MEMBER = "@-"
+_PATTERN_MENTION = "@-"
 
 
-def format_message(message, event_member):
-	def _apply_fomrat(match_obj):
-		print(match_obj.group())
-		return event_member.mention
+def make_mention(text, mentionnable):
+	"""
+	Searches a text for occurrences of "@-" and replaces them with the given
+	object's mention (@name or #name).
 
-	formatted_msg = re.sub(_PATTERN_EVENT_MEMBER, _apply_fomrat, message)
-	print(formatted_msg)
-	return formatted_msg
+	Args:
+		text (str): any text
+		mentionnalbe: any object with attribute mention
+
+	Returns:
+		str: the given text with mentions of the mentionnable object.
+	"""
+	def _get_mention(match_obj):
+		# The argument is not used.
+		return mentionnable.mention
+
+	formatted_text = re.sub(_PATTERN_MENTION, _get_mention, text)
+	return formatted_text
