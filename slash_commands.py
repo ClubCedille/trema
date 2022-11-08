@@ -48,7 +48,7 @@ def create_slash_cmds(trema_bot, trema_db):
 		else:
 			trema_db.set_server_welcome_chan_id(guild_id, id_accueil)
 			confirmed_chan_id = trema_db.get_server_welcome_chan_id(guild_id)
-			confirmed_chan_name = selected_chan.name
+			confirmed_chan_name = guild.get_channel(confirmed_chan_id).name
 			updated_value = f"{confirmed_chan_name} ({confirmed_chan_id})"
 			response_embed = _make_config_confirm_embed(
 				embed_title, updated_value, prev_value)
