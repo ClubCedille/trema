@@ -33,14 +33,22 @@ def format_message(message, event_member):
 
 		if re.fullmatch(_PATTERN_CHANNEL, match_str):
 			channel = get_channel_by_name(guild, match_str[1:])
-			replacement = channel.mention
+
+			if channel is None:
+				replacement = match_str
+			else:
+				replacement = channel.mention
 
 		elif re.fullmatch(_PATTERN_EVENT_MEMBER, match_str):
 			replacement = event_member.mention
 
 		elif re.fullmatch(_PATTERN_MEMBER_NAME, match_str):
 			guild_member = get_member_by_name(guild, match_str[1:])
-			replacement = guild_member.mention
+
+			if guild_member is None:
+				replacement = match_str
+			else:
+				replacement = guild_member.mention
 
 		print(replacement)
 		return replacement
