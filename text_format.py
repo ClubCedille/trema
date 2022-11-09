@@ -15,6 +15,9 @@ def make_mention(text, mentionnable):
 
 	Returns:
 		str: the given text with mentions of the mentionnable object.
+
+	Raises:
+		AttributeError: if mentionable does not have attribute mention
 	"""
 	def _get_mention(match_obj):
 		# The argument is not used.
