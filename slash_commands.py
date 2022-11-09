@@ -8,6 +8,8 @@ from discord_util import\
 	get_channel_name
 
 
+_MEMBER_MENTION  = "\"@-\""
+
 _SLASH = "/"
 _SPACE = " "
 
@@ -56,8 +58,9 @@ def create_slash_cmds(trema_bot, trema_db):
 		await ctx.send(embed=response_embed)
 
 	@config.command(name="msgaccueil",
-		description="Changer le message d'accueil des nouveaux membres")
-	async def config_welcome_msg(ctx, message: Option(str, "Nouveau message d'accueil")):
+		description="Changer le message affiché lorsqu'un membre arrive dans le serveur")
+	async def config_welcome_msg(ctx,
+			message: Option(str, f"Nouveau message d'accueil. {_MEMBER_MENTION} pour mentionner le nouveau membre.")):
 		guild_id = ctx.guild_id
 		embed_title = _make_cmd_full_name(ctx.command) + _SPACE + message
 
@@ -72,7 +75,8 @@ def create_slash_cmds(trema_bot, trema_db):
 
 	@config.command(name="msgdepart",
 		description="Changer le message affiché lorsqu'un membre quitte le serveur")
-	async def config_leave_msg(ctx, message: Option(str, "Nouveau message de départ")):
+	async def config_leave_msg(ctx,
+			message: Option(str, f"Nouveau message de départ. {_MEMBER_MENTION} pour mentionner le membre qui part.")):
 		guild_id = ctx.guild_id
 		embed_title = _make_cmd_full_name(ctx.command) + _SPACE + message
 
