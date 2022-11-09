@@ -56,7 +56,7 @@ def create_slash_cmds(trema_bot, trema_db):
 		await ctx.send(embed=response_embed)
 
 	@config.command(name="msgaccueil",
-			desciption="Changer le message d'accueil des nouveaux membres")
+		description="Changer le message d'accueil des nouveaux membres")
 	async def config_welcome_msg(ctx, message: Option(str, "Nouveau message d'accueil")):
 		guild_id = ctx.guild_id
 		embed_title = _make_cmd_full_name(ctx.command) + _SPACE + message
