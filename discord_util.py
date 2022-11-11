@@ -5,27 +5,30 @@ import discord
 _ROLE_EVERYONE = "@everyone"
 
 
-def get_channel_by_name(bot, channel_name):
+def get_channel_by_name(guild, channel_name):
 	"""
-	Retrieves a server channel among those that a Discord bot knows.
+	Given a guild and the name of one of its channels, this function provides
+	the corresponding channel object. If the guild has more than one channel
+	with that name, the first channel found is returned.
 
 	Args:
-		bot (discord.bot.Bot): a Discord bot
+		guild (discord.Guild): a Discord guild
 		channel_name (str): the name of the wanted channel
 
 	Returns:
-		discord.abc.GuildChannel: the wanted channel
+		discord.abc.GuildChannel: a channel with the specified name or None if
+			the guild does not have a channel with that name
 	"""
-	return discord.utils.get(bot.get_all_channels(), name=channel_name)
+	return discord.utils.get(guild.channels, name=channel_name)
 
 
 def get_channel_name(guild, channel_id):
 	"""
-	Given a guild and the ID of one of its channels, this method provides the
+	Given a guild and the ID of one of its channels, this function provides the
 	channel's name.
 
 	Args:
-		guild: a Discord guild
+		guild (discord.Guild): a Discord guild
 		channel_id (int): the ID of one of guild's channels
 
 	Returns:
@@ -37,6 +40,23 @@ def get_channel_name(guild, channel_id):
 		return None
 
 	return channel.name
+
+
+def get_member_by_name(guild, member_name):
+	"""
+	Given a guild and the name of one of its members, this function provides
+	the corresponding member object. If the guild has more than one member
+	with that name, the first member found is returned.
+
+	Args:
+		guild (discord.Guild): a Discord guild
+		member_name (str): the name of the wanted member
+
+	Returns:
+		discord.abc.GuildChannel: a guild member with the specified name or
+			None if the guild does not have a member with that name
+	"""
+	return discord.utils.get(guild.members, name=member_name)
 
 
 def member_roles_are_default(member):
