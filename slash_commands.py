@@ -18,6 +18,22 @@ def create_slash_cmds(trema_bot, trema_db):
 	config = SlashCommandGroup(name="config",
 		description="Configurez les options de Trëma pour votre serveur.")
 
+	@config.command(name="aide",
+		description="Informations sur les commandes /config")
+	async def aide(ctx):
+		embed_title = _make_cmd_full_name(ctx.command)
+		instructions =\
+			"Le groupe de commandes **/config** permet de changer les paramètres de Trëma. "\
+			+ "Écrivez **/config** dans le champ des messages pour voir les paramètres "\
+			+ "disponibles et leur description.\n\n"\
+			+ "Donnez l'argument **$** à une commande **/config** pour voir la valeur actuelle "\
+			+ "d'un paramètre."
+		help_embed = Embed(
+			title=embed_title,
+			description=instructions,
+			color=Color.green())
+		await ctx.send(embed=help_embed)
+
 	@config.command(name="canalaccueil",
 		description="Changer le canal d'accueil des nouveaux membres")
 	async def config_welcome_chan(ctx,
