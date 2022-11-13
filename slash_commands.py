@@ -31,7 +31,7 @@ def create_slash_cmds(trema_bot, trema_db):
 		help_embed = Embed(
 			title=embed_title,
 			description=instructions,
-			color=Color.green())
+			color=Color.blue())
 		await ctx.send(embed=help_embed)
 
 	@config.command(name="canalaccueil",
