@@ -194,9 +194,16 @@ class _TremaDatabase:
 	def set_leave_msg(self, welcome_id, leave_msg):
 		self._set_welcome_attr(welcome_id, "leave_msg", leave_msg)
 
+	def set_reminder_msg(self, welcome_id, reminder_msg):
+		self._set_welcome_attr(welcome_id, "reminder_msg", reminder_msg)
+
 	def set_server_leave_msg(self, server_id, leave_msg):
 		welcome_id = self._get_server_welcome_id(server_id)
 		self.set_leave_msg(welcome_id, leave_msg)
+
+	def set_server_reminder_msg(self, server_id, reminder_msg):
+		welcome_id = self._get_server_welcome_id(server_id)
+		self.set_reminder_msg(welcome_id, reminder_msg)
 
 	def set_server_welcome_chan_id(self, server_id, welcome_chan_id):
 		welcome_id = self._get_server_welcome_id(server_id)

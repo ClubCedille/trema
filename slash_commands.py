@@ -104,6 +104,30 @@ def create_slash_cmds(trema_bot, trema_db):
 
 		await ctx.send(embed=response_embed)
 
+	rappel = config.create_subgroup("rappel",
+		description="Configurez le rappel aux membres qui n'ont pas choisi de rôles.")
+
+	@rappel.command(name="message",
+		description="Changez le message de rappel aux membres sans rôles.")
+	async def config_reminder_msg(ctx,
+			message: Option(str, f"Message de rappel aux membres sans rôles. {_MEMBER_MENTION} pour mentionner le membre.")):
+		guild_id = ctx.guild_id
+		embed_title = _make_cmd_full_name(ctx.command) + _SPACE + message
+
+		prev_value = trema_db.get_server_reminder_msg(guild_id)
+
+		if message == _REQUEST_VALUE:
+			response_embed =\
+				_make_config_display_embed(embed_title, prev_value)
+
+		else:
+			trema_db.set_server_reminder_msg(guild_id, message)
+			confirmed_msg = trema_db.get_server_reminder_msg(guild_id)
+			response_embed = _make_config_confirm_embed(
+				embed_title, confirmed_msg, prev_value)
+
+		await ctx.send(embed=response_embed)
+
 	trema_bot.add_application_command(config)
 
 
