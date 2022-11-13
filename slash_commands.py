@@ -9,11 +9,9 @@ from discord_util import\
 
 
 _MEMBER_MENTION  = "«@-»"
-
+_REQUEST_VALUE = "$"
 _SLASH = "/"
 _SPACE = " "
-
-_REQUEST_VALUE = "$"
 
 
 def create_slash_cmds(trema_bot, trema_db):
@@ -131,7 +129,8 @@ def create_slash_cmds(trema_bot, trema_db):
 			delay: Option(str, "Délai du rappel aux membres sans rôles")):
 		guild_id = ctx.guild_id
 		embed_title = _make_cmd_full_name(ctx.command) + _SPACE + delay
-		prev_value = trema_db.get_server_reminder_delay(guild_id)
+		prev_value = trema_db.get_server_reminder_delay(guild_id) / 60
+		prev_value = int(prev_value)
 
 		try:
 			delay = int(delay) * 60
@@ -148,7 +147,8 @@ def create_slash_cmds(trema_bot, trema_db):
 
 		else:
 			trema_db.set_server_reminder_delay(guild_id, delay)
-			confirmed_delay = trema_db.get_server_reminder_delay(guild_id)
+			confirmed_delay = trema_db.get_server_reminder_delay(guild_id) / 60
+			confirmed_delay = int(confirmed_delay)
 			response_embed = _make_config_confirm_embed(
 				embed_title, confirmed_delay, prev_value)
 
