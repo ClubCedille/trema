@@ -70,13 +70,14 @@ def create_slash_cmds(trema_bot, trema_db):
 		embed_title = _make_cmd_full_name(ctx.command) + _SPACE + message
 
 		prev_value = trema_db.get_server_welcome_msg(guild_id)
-		trema_db.set_server_welcome_msg(guild_id, message)
-		confirmed_msg = trema_db.get_server_welcome_msg(guild_id)
 
 		if message == _REQUEST_VALUE:
-			response_embed = _make_config_display_embed(embed_title, prev_value)
+			response_embed =\
+				_make_config_display_embed(embed_title, prev_value)
 
 		else:
+			trema_db.set_server_welcome_msg(guild_id, message)
+			confirmed_msg = trema_db.get_server_welcome_msg(guild_id)
 			response_embed = _make_config_confirm_embed(
 				embed_title, confirmed_msg, prev_value)
 
@@ -90,13 +91,18 @@ def create_slash_cmds(trema_bot, trema_db):
 		embed_title = _make_cmd_full_name(ctx.command) + _SPACE + message
 
 		prev_value = trema_db.get_server_leave_msg(guild_id)
-		trema_db.set_server_leave_msg(guild_id, message)
-		confirmed_msg = trema_db.get_server_leave_msg(guild_id)
 
-		confirm_embed = _make_config_confirm_embed(
-			embed_title, confirmed_msg, prev_value)
+		if message == _REQUEST_VALUE:
+			response_embed =\
+				_make_config_display_embed(embed_title, prev_value)
 
-		await ctx.send(embed=confirm_embed)
+		else:
+			trema_db.set_server_leave_msg(guild_id, message)
+			confirmed_msg = trema_db.get_server_leave_msg(guild_id)
+			response_embed = _make_config_confirm_embed(
+				embed_title, confirmed_msg, prev_value)
+
+		await ctx.send(embed=response_embed)
 
 	trema_bot.add_application_command(config)
 
