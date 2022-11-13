@@ -13,6 +13,8 @@ _MEMBER_MENTION  = "«@-»"
 _SLASH = "/"
 _SPACE = " "
 
+_REQUEST_VALUE = "$"
+
 
 def create_slash_cmds(trema_bot, trema_db):
 	config = SlashCommandGroup(name="config",
@@ -39,7 +41,10 @@ def create_slash_cmds(trema_bot, trema_db):
 		except ValueError:
 			pass
 
-		if not isinstance(id_accueil, int) or id_accueil < 0:
+		if isinstance(id_accueil, str) and id_accueil == _REQUEST_VALUE:
+			response_embed = _make_config_display_embed(embed_title, prev_value)
+
+		elif not isinstance(id_accueil, int) or id_accueil < 0:
 			response_embed = _make_config_error_embed(embed_title, prev_value,
 				"L'identifiant des canaux est un nombre entier positif.")
 
@@ -112,10 +117,18 @@ def _make_config_confirm_embed(title, updated_value, prev_value):
 	return confirm_embed
 
 
+def _make_config_display_embed(title, current_value):
+	display_embed = Embed(
+		title=title,
+		description=f"Valeur actuelle: {current_value}",
+		color=Color.green())
+	return display_embed
+
+
 def _make_config_error_embed(title, current_value, error_msg):
 	error_embed = Embed(
 		title=title,
 		description=
-			f"ERREUR!\n{error_msg}\n\nParamètre actuel: {current_value}",
+			f"ERREUR!\n{error_msg}\n\nValeur actuelle: {current_value}",
 		color=Color.red())
 	return error_embed
