@@ -18,8 +18,7 @@ try:
 		"welcome_msg": "Heille! Bienvenue au Club CEDILLE! Suis les instructions dans #accueil pour avoir accès au reste du serveur!",
 		"reminder_delay": 15 * 60,
 		"reminder_msg": "Viens dans accueil pour t'attribuer un rôle!",
-		"leave_msg": " a quitté le serveur.",
-        "instruct_chan_id": 980209198023467029
+		"leave_msg": " a quitté le serveur."
 	}
 
 	server_doc = {

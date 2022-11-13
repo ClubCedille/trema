@@ -181,7 +181,6 @@ class _TremaDatabase:
 		welcome_doc["reminder_delay"] = 15 * 60
 		welcome_doc["reminder_msg"] = None
 		welcome_doc["leave_msg"] = None
-		welcome_doc["instruct_chan_id"] = None
 		welcome_doc["welcome_chan_id"] = server.system_channel.id
 		self.add_document("welcome", welcome_doc)
 
