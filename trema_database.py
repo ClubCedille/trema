@@ -175,21 +175,23 @@ class _TremaDatabase:
 			return True
 
 		welcome_id = self.generate_rand_id("welcome")
-		welcome_doc = dict()
-		welcome_doc["_id"] = welcome_id
-		welcome_doc["welcome_msg"] = "Bienvenue au club!"
-		welcome_doc["reminder_delay"] = 15 * 60
-		welcome_doc["reminder_msg"] = None
-		welcome_doc["leave_msg"] = None
-		welcome_doc["welcome_chan_id"] = server.system_channel.id
+		welcome_doc = {
+			"_id": welcome_id,
+			"welcome_msg": "Bienvenue au club!",
+			"reminder_delay": 15 * 60,
+			"reminder_msg": None,
+			"leave_msg": None,
+			"welcome_chan_id": server.system_channel.id
+		}
 		self.add_document("welcome", welcome_doc)
 
-		server_doc = dict()
-		server_doc["_id"] = server.id
-		server_doc["name"] = server.name
-		server_doc["joined_at"] = str(datetime.now())
-		server_doc["announce_chan_id"] = None
-		server_doc["welcome_id"] = welcome_id
+		server_doc = {
+			"_id": server.id,
+			"name": server.name,
+			"joined_at": str(datetime.now()),
+			"announce_chan_id": None,
+			"welcome_id": welcome_id
+		}
 		self.add_document("server", server_doc)
 
 		return False
