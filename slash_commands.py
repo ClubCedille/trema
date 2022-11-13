@@ -8,7 +8,7 @@ from discord_util import\
 	get_channel_name
 
 
-_MEMBER_MENTION  = "«@-»"
+_MEMBER_MENTIONABLE = "[@-]"
 _REQUEST_VALUE = "$"
 _SLASH = "/"
 _SPACE = " "
@@ -23,6 +23,25 @@ def create_slash_cmds(trema_bot, trema_db):
 def _create_config_cmds(trema_db):
 	config = SlashCommandGroup(name="config",
 		description="Configurez les options de Trëma pour votre serveur.")
+
+	@config.command(name="aide",
+		description="Informations sur les commandes /config")
+	async def aide(ctx):
+		embed_title = _make_cmd_full_name(ctx.command)
+		instructions =\
+			"Le groupe de commandes **/config** permet de changer les paramètres de Trëma. "\
+			+ "Écrivez **/config** dans le champ des messages pour voir les paramètres "\
+			+ "disponibles et leur description.\n\n"\
+			+ "Donnez l'argument **$** à une commande **/config** pour voir la valeur actuelle "\
+			+ "d'un paramètre.\n\n"\
+			+ "Certains paramètres sont des messages affichés arpès un évènement concernant "\
+			+ "un membre particulier. Pour mentionner ce membre, écrivez **@-** dans ces messages. "\
+			+ "Le signe **[@-]** au début d'une description inidque que cette action est possible."
+		help_embed = Embed(
+			title=embed_title,
+			description=instructions,
+			color=Color.blue())
+		await ctx.send(embed=help_embed)
 
 	@config.command(name="canalaccueil",
 		description="Changer le canal d'accueil des nouveaux membres")
@@ -67,9 +86,9 @@ def _create_config_cmds(trema_db):
 		await ctx.send(embed=response_embed)
 
 	@config.command(name="msgaccueil",
-		description="Changer le message affiché lorsqu'un membre arrive dans le serveur")
+		description=f"{_MEMBER_MENTIONABLE} Changer le message affiché lorsqu'un membre arrive dans le serveur")
 	async def config_welcome_msg(ctx,
-			message: Option(str, f"Nouveau message d'accueil. {_MEMBER_MENTION} pour mentionner le nouveau membre.")):
+			message: Option(str, f"{_MEMBER_MENTIONABLE} Nouveau message d'accueil.")):
 		guild_id = ctx.guild_id
 		embed_title = _make_cmd_full_name(ctx.command) + _SPACE + message
 		prev_value = trema_db.get_server_welcome_msg(guild_id)
@@ -87,9 +106,9 @@ def _create_config_cmds(trema_db):
 		await ctx.send(embed=response_embed)
 
 	@config.command(name="msgdepart",
-		description="Changer le message affiché lorsqu'un membre quitte le serveur")
+		description=f"{_MEMBER_MENTIONABLE} Changer le message affiché lorsqu'un membre quitte le serveur")
 	async def config_leave_msg(ctx,
-			message: Option(str, f"Nouveau message de départ. {_MEMBER_MENTION} pour mentionner le membre qui part.")):
+			message: Option(str, f"{_MEMBER_MENTIONABLE} Nouveau message de départ.")):
 		guild_id = ctx.guild_id
 		embed_title = _make_cmd_full_name(ctx.command) + _SPACE + message
 		prev_value = trema_db.get_server_leave_msg(guild_id)
@@ -114,9 +133,9 @@ def _create_config_reminder_cmds(trema_db, config_group):
 		description="Configurez le rappel aux membres qui n'ont pas choisi de rôles.")
 
 	@rappel.command(name="message",
-		description="Changez le message de rappel aux membres sans rôles.")
+		description=f"{_MEMBER_MENTIONABLE} Changez le message de rappel aux membres sans rôles.")
 	async def config_reminder_msg(ctx,
-			message: Option(str, f"Message de rappel aux membres sans rôles. {_MEMBER_MENTION} pour mentionner le membre.")):
+			message: Option(str, f"{_MEMBER_MENTIONABLE} Message de rappel aux membres sans rôles.")):
 		guild_id = ctx.guild_id
 		embed_title = _make_cmd_full_name(ctx.command) + _SPACE + message
 		prev_value = trema_db.get_server_reminder_msg(guild_id)
