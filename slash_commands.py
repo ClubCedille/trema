@@ -15,6 +15,12 @@ _SPACE = " "
 
 
 def create_slash_cmds(trema_bot, trema_db):
+	config = _create_config_cmds(trema_db)
+	_create_config_reminder_cmds(trema_db, config)
+	trema_bot.add_application_command(config)
+
+
+def _create_config_cmds(trema_db):
 	config = SlashCommandGroup(name="config",
 		description="Configurez les options de Trëma pour votre serveur.")
 
@@ -100,8 +106,7 @@ def create_slash_cmds(trema_bot, trema_db):
 
 		await ctx.send(embed=response_embed)
 
-	_create_config_reminder_cmds(trema_db, config)
-	trema_bot.add_application_command(config)
+	return config
 
 
 def _create_config_reminder_cmds(trema_db, config_group):
