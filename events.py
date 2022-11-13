@@ -8,9 +8,6 @@ from text_format import\
 	make_mention
 
 
-_DELAY_SECS_15_MIN = 15 * 60
-
-
 def _get_welcome_chan(guild, trema_db):
 	guild_id = guild.id
 	welcome_chan_id = trema_db.get_server_welcome_chan_id(guild_id)
@@ -37,9 +34,10 @@ def create_event_reactions(trema_bot, trema_db):
 		reminder_msg = trema_db.get_server_reminder_msg(guild_id)
 		if not member.bot and reminder_msg is not None:
 			reminder_msg = make_mention(reminder_msg, member)
+			reminder_delay = trema_db.get_server_reminder_delay(guild_id)
 			msg_condition = lambda: member_roles_are_default(member)
 			reminder_task = asyncio.create_task(send_delayed_dm(
-				member, reminder_msg, _DELAY_SECS_15_MIN, msg_condition))
+				member, reminder_msg, reminder_delay, msg_condition))
 			await asyncio.wait([reminder_task])
 
 	@trema_bot.event
