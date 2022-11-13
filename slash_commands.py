@@ -8,7 +8,7 @@ from discord_util import\
 	get_channel_name
 
 
-_MEMBER_MENTIONABLE  = "[@-]"
+_MEMBER_MENTIONABLE = "[@-]"
 _REQUEST_VALUE = "$"
 _SLASH = "/"
 _SPACE = " "
