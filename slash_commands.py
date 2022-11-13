@@ -73,10 +73,14 @@ def create_slash_cmds(trema_bot, trema_db):
 		trema_db.set_server_welcome_msg(guild_id, message)
 		confirmed_msg = trema_db.get_server_welcome_msg(guild_id)
 
-		confirm_embed = _make_config_confirm_embed(
-			embed_title, confirmed_msg, prev_value)
+		if message == _REQUEST_VALUE:
+			response_embed = _make_config_display_embed(embed_title, prev_value)
 
-		await ctx.send(embed=confirm_embed)
+		else:
+			response_embed = _make_config_confirm_embed(
+				embed_title, confirmed_msg, prev_value)
+
+		await ctx.send(embed=response_embed)
 
 	@config.command(name="msgdepart",
 		description="Changer le message affiché lorsqu'un membre quitte le serveur")
