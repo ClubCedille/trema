@@ -68,7 +68,6 @@ def create_slash_cmds(trema_bot, trema_db):
 			message: Option(str, f"Nouveau message d'accueil. {_MEMBER_MENTION} pour mentionner le nouveau membre.")):
 		guild_id = ctx.guild_id
 		embed_title = _make_cmd_full_name(ctx.command) + _SPACE + message
-
 		prev_value = trema_db.get_server_welcome_msg(guild_id)
 
 		if message == _REQUEST_VALUE:
@@ -89,7 +88,6 @@ def create_slash_cmds(trema_bot, trema_db):
 			message: Option(str, f"Nouveau message de départ. {_MEMBER_MENTION} pour mentionner le membre qui part.")):
 		guild_id = ctx.guild_id
 		embed_title = _make_cmd_full_name(ctx.command) + _SPACE + message
-
 		prev_value = trema_db.get_server_leave_msg(guild_id)
 
 		if message == _REQUEST_VALUE:
@@ -113,7 +111,6 @@ def create_slash_cmds(trema_bot, trema_db):
 			message: Option(str, f"Message de rappel aux membres sans rôles. {_MEMBER_MENTION} pour mentionner le membre.")):
 		guild_id = ctx.guild_id
 		embed_title = _make_cmd_full_name(ctx.command) + _SPACE + message
-
 		prev_value = trema_db.get_server_reminder_msg(guild_id)
 
 		if message == _REQUEST_VALUE:
@@ -125,6 +122,35 @@ def create_slash_cmds(trema_bot, trema_db):
 			confirmed_msg = trema_db.get_server_reminder_msg(guild_id)
 			response_embed = _make_config_confirm_embed(
 				embed_title, confirmed_msg, prev_value)
+
+		await ctx.send(embed=response_embed)
+
+	@rappel.command(name="delai",
+		description="Changer le délai d'envoi du rappel aux membres sans rôles (minutes).")
+	async def config_reminder_delay(ctx,
+			delay: Option(str, "Délai du rappel aux membres sans rôles")):
+		guild_id = ctx.guild_id
+		embed_title = _make_cmd_full_name(ctx.command) + _SPACE + delay
+		prev_value = trema_db.get_server_reminder_delay(guild_id)
+
+		try:
+			delay = int(delay) * 60
+
+		except ValueError:
+			pass
+
+		if isinstance(delay, str) and delay == _REQUEST_VALUE:
+				response_embed = _make_config_display_embed(embed_title, prev_value)
+			
+		elif not isinstance(delay, int) or delay < 0:
+			response_embed = _make_config_error_embed(embed_title, prev_value,
+				"Le délai de rappel (minutes) est un nombre entier positif.")
+
+		else:
+			trema_db.set_server_reminder_delay(guild_id, delay)
+			confirmed_delay = trema_db.get_server_reminder_delay(guild_id)
+			response_embed = _make_config_confirm_embed(
+				embed_title, confirmed_delay, prev_value)
 
 		await ctx.send(embed=response_embed)
 

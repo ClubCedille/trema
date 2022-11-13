@@ -3,6 +3,7 @@
     "properties": {
         "_id": {"type": "number"},
         "welcome_msg": {"type": "string"},
+		"reminder_delay": {"type": "number"},
 		"reminder_msg": {"type": ["string", "null"]},
 		"leave_msg": {"type": ["string", "null"]},
         "instruct_chan_id": {"type": ["number", "null"]},

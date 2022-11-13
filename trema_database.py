@@ -95,6 +95,10 @@ class _TremaDatabase:
 		leave_msg = self._get_welcome_attr(welcome_id, "leave_msg")
 		return leave_msg
 
+	def get_reminder_delay(self, welcome_id):
+		reminder_delay = self._get_welcome_attr(welcome_id, "reminder_delay")
+		return reminder_delay
+
 	def get_reminder_msg(self, welcome_id):
 		reminder_msg = self._get_welcome_attr(welcome_id, "reminder_msg")
 		return reminder_msg
@@ -115,6 +119,11 @@ class _TremaDatabase:
 		welcome_id = self._get_server_welcome_id(server_id)
 		leave_msg = self.get_leave_msg(welcome_id)
 		return leave_msg
+
+	def get_server_reminder_delay(self, server_id):
+		welcome_id = self._get_server_welcome_id(server_id)
+		reminder_delay = self.get_reminder_delay(welcome_id)
+		return reminder_delay
 
 	def get_server_reminder_msg(self, server_id):
 		welcome_id = self._get_server_welcome_id(server_id)
@@ -169,6 +178,7 @@ class _TremaDatabase:
 		welcome_doc = dict()
 		welcome_doc["_id"] = welcome_id
 		welcome_doc["welcome_msg"] = "Bienvenue au club!"
+		welcome_doc["reminder_delay"] = 15 * 60
 		welcome_doc["reminder_msg"] = None
 		welcome_doc["leave_msg"] = None
 		welcome_doc["instruct_chan_id"] = None
@@ -194,12 +204,19 @@ class _TremaDatabase:
 	def set_leave_msg(self, welcome_id, leave_msg):
 		self._set_welcome_attr(welcome_id, "leave_msg", leave_msg)
 
+	def set_reminder_delay(self, welcome_id, reminder_delay):
+		self._set_welcome_attr(welcome_id, "reminder_delay", reminder_delay)
+
 	def set_reminder_msg(self, welcome_id, reminder_msg):
 		self._set_welcome_attr(welcome_id, "reminder_msg", reminder_msg)
 
 	def set_server_leave_msg(self, server_id, leave_msg):
 		welcome_id = self._get_server_welcome_id(server_id)
 		self.set_leave_msg(welcome_id, leave_msg)
+
+	def set_server_reminder_delay(self, server_id, reminder_delay):
+		welcome_id = self._get_server_welcome_id(server_id)
+		self.set_reminder_delay(welcome_id, reminder_delay)
 
 	def set_server_reminder_msg(self, server_id, reminder_msg):
 		welcome_id = self._get_server_welcome_id(server_id)
