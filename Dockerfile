@@ -9,7 +9,7 @@ COPY . .
 # Read token from argument
 ARG token
 # Define an environnement Variable
-ENV JETON $token
+ENV JETON=${token}
 
 # run necessary command to install all modules
 RUN pip install -r requirements.txt
