@@ -55,11 +55,19 @@ d'authentification.
 python trema.py -j [jeton]
 ```
 
-## Construire l'image Docker
+## Docker
+
+### Construire l'image
 
 Se placer à la racine du projet.
 Exectuer la commande suivante :
 
 ```bash
 docker build -t trema --build-arg token=<jeton> .
+```
+
+### Lancer l'image
+
+```bash
+docker run trema
 ```
