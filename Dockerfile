@@ -15,4 +15,4 @@ ENV JETON=${token}
 RUN pip install -r requirements.txt
 
 # run trema
-CMD ["python","trema.py","-j", "$JETON"]
+CMD ["python", "trema.py", "-j", "${JETON}"]
