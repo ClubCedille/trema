@@ -1,0 +1,11 @@
+# ignoring workflow
+.github/
+
+# ignoring git and cache folders
+.git*
+__pycache__
+
+# ignoring markdown Licence and config files
+*.yml
+*.md
+LICENCE
