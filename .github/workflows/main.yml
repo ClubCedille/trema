@@ -2,7 +2,7 @@ name: MAIN CI/CD
 
 on:
   push:
-    branches: [master]
+    branches: [docker]
 
 jobs:
   build:
@@ -35,7 +35,7 @@ jobs:
           context: ./
           file: ./Dockerfile
           push: true
-          tags: ${{ secrets.DOCKER_HUB_USERNAME }}/${{ env.DOCKER_IMAGE }}
+          tags: ${{ secrets.DOCKER_HUB_USERNAME }}/${{ env.DOCKER_IMAGE }}:latest
           cache-from: type=local,src=/tmp/.buildx-cache
           cache-to: type=local,dest=/tmp/.buildx-cache
           build-args: token=${{ secrets.DISCORD_TOKEN }}
