@@ -1,11 +1,12 @@
-name: Deployment
+name: Docker
 
 on:
   push:
     branches: [docker]
 
 jobs:
-  deployment:
+  build:
+    environment: deployment
     runs-on: ubuntu-latest
     steps:
       - name: Cache Docker layers
