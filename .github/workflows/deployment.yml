@@ -1,11 +1,11 @@
-name: MAIN CI/CD
+name: Deployment
 
 on:
   push:
     branches: [docker]
 
 jobs:
-  build:
+  deployment:
     runs-on: ubuntu-latest
     steps:
       - name: Cache Docker layers
