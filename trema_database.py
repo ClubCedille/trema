@@ -244,5 +244,6 @@ class _TremaDatabase:
 database = _TremaDatabase(
 	"trema", "mongodb://root:root@localhost:27017/?authSource=admin")
 
+
 def get_trema_database():
 	return database

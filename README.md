@@ -71,3 +71,23 @@ docker build -t trema --build-arg token=<jeton> .
 ```bash
 docker run trema
 ```
+
+### Lancement des tests
+
+Pour lancer tous les tests du projet, lancez
+la commande suivante.
+```
+pytest
+```
+
+Pour lancer tous les tests d'un fichier en particulier, lancez
+la commande suivante.
+```
+pytest -v ./tests/[nom du fichier].py
+```
+
+Pour lancer un seul test d'un fichier, lancez la commande
+suivante.
+```
+pytest -v ./tests/[nom du fichier].py::[nom de la fonction]
+```
