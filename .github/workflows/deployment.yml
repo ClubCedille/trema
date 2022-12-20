@@ -10,7 +10,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Cache Docker layers
-        uses: actions/cache@v3
+        uses: actions/cache@v2
         with:
           path: /tmp/.buildx-cache
           key: ${{ runner.os }}-buildx-${{ github.sha }}
@@ -31,11 +31,11 @@ jobs:
 
       - name: Build and push
         id: docker_build
-        uses: docker/build-push-action@v3
+        uses: docker/build-push-action@v2
         env:
           DOCKERHUB_REPOSITORY: "clubcedille/trema"
         with:
-          context: ./
+          context: .
           file: ./Dockerfile
           push: true
           tags: ${{ env.DOCKERHUB_REPOSITORY }}:latest
