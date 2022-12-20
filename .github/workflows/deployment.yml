@@ -10,7 +10,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Cache Docker layers
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         with:
           path: /tmp/.buildx-cache
           key: ${{ runner.os }}-buildx-${{ github.sha }}
@@ -31,16 +31,16 @@ jobs:
 
       - name: Build and push
         id: docker_build
-        uses: docker/build-push-action@v2
-        env:
-          DOCKERHUB_REPOSITORY: "clubcedille/trema"
+        uses: docker/build-push-action@v3
         with:
-          context: .
+          context: ./
           file: ./Dockerfile
           push: true
-          tags: ${{ env.DOCKERHUB_REPOSITORY }}:latest
+          tags: ${{ secrets.DOCKER_HUB_REPOSITORY }}:latest
           cache-from: type=local,src=/tmp/.buildx-cache
           cache-to: type=local,dest=/tmp/.buildx-cache
           build-args: token=${{ secrets.DISCORD_TOKEN }}
       - name: Image digest
+
+
         run: echo ${{ steps.docker_build.outputs.digest }}
