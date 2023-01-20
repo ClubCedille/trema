@@ -55,6 +55,7 @@ d'authentification.
 python trema.py -j [jeton]
 ```
 
+<<<<<<< HEAD
 ## Docker
 
 ### Construire l'image
@@ -72,6 +73,8 @@ docker build -t trema --build-arg token=<jeton> .
 docker run trema
 ```
 
+=======
+>>>>>>> 28330bbdbb602af8816ecf7250873e82865c2da9
 ### Lancement des tests
 
 Pour lancer tous les tests du projet, lancez
