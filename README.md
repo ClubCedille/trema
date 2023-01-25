@@ -55,7 +55,24 @@ d'authentification.
 python trema.py -j [jeton]
 ```
 
-### Lancement des tests
+## Docker
+
+### Construire l'image
+
+Se placer à la racine du projet.
+Exectuer la commande suivante :
+
+```bash
+docker build -t trema --build-arg token=<jeton> .
+```
+
+### Lancer l'image
+
+```bash
+docker run trema
+```
+
+## Test
 
 Pour lancer tous les tests du projet, lancez
 la commande suivante.
@@ -73,20 +90,4 @@ Pour lancer un seul test d'un fichier, lancez la commande
 suivante.
 ```
 pytest -v ./tests/[nom du fichier].py::[nom de la fonction]
-```
-## Docker
-
-### Construire l'image
-
-Se placer à la racine du projet.
-Exectuer la commande suivante :
-
-```bash
-docker build -t trema --build-arg token=<jeton> .
-```
-
-### Lancer l'image
-
-```bash
-docker run trema
 ```
