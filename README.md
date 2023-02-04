@@ -74,6 +74,9 @@ docker run trema
 
 ## Test
 
+### Lancement des tests
+
+
 Pour lancer tous les tests du projet, lancez
 la commande suivante.
 ```
@@ -90,4 +93,4 @@ Pour lancer un seul test d'un fichier, lancez la commande
 suivante.
 ```
 pytest -v ./tests/[nom du fichier].py::[nom de la fonction]
-```
+
