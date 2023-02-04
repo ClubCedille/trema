@@ -39,7 +39,6 @@ jobs:
           tags: ${{ secrets.DOCKER_HUB_REPOSITORY }}:latest
           cache-from: type=local,src=/tmp/.buildx-cache
           cache-to: type=local,dest=/tmp/.buildx-cache
-          build-args: token=${{ secrets.DISCORD_TOKEN }}
       - name: Image digest
 
 
