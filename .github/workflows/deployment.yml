@@ -42,8 +42,8 @@ jobs:
           file: ./Dockerfile
           push: true
           tags: |
-            ${{ env.DOCKERHUB_REPOSITORY }}:latest
-            ${{ env.DOCKERHUB_REPOSITORY }}:${{ steps.tag.outputs.version }}
+            ${{ secrets.DOCKER_HUB_REPOSITORY }}:latest
+            ${{ secrets.DOCKER_HUB_REPOSITORY }}:${{ steps.tag.outputs.version }}
           cache-from: type=local,src=/tmp/.buildx-cache
           cache-to: type=local,dest=/tmp/.buildx-cache
       - name: Image digest
