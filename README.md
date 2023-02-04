@@ -48,11 +48,20 @@ données.
 
 ### Lancement de Trëma
 
-Lancez le robot en ligne de commande en lui donnant son jeton
-d'authentification.
+Définissez la variable d'environnement suivante :
+- DISCORD_TOKEN : Discord bot token
+
+Installer les dépendances en ligne de commande.
 
 ```bash
-python trema.py -j [jeton]
+pip install -r requirements.txt
+pip install git+https://github.com/Pycord-Development/pycord
+```
+
+Lancez le robot en ligne de commande.
+
+```bash
+python trema.py
 ```
 
 ## Docker
@@ -63,7 +72,7 @@ Se placer à la racine du projet.
 Exectuer la commande suivante :
 
 ```bash
-docker build -t trema --build-arg token=<jeton> .
+docker build -t trema .
 ```
 
 ### Lancer l'image
@@ -91,3 +100,4 @@ suivante.
 ```
 pytest -v ./tests/[nom du fichier].py::[nom de la fonction]
 ```
+
