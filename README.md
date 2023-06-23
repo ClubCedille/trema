@@ -50,6 +50,10 @@ données.
 
 Définissez la variable d'environnement suivante :
 - DISCORD_TOKEN : Discord bot token
+- MONGO_USER : utilisateur de la db 
+- MONGO_PASSWORD : mot de passe de la db
+- MONGO_HOST : nom d'hôte de la db
+- MONGO_PORT : Port pour la db
 
 Installer les dépendances en ligne de commande.
 

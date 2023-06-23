@@ -4,7 +4,7 @@ from pymongo import MongoClient
 from random import randint
 from schemas import get_schema
 from sys import maxsize
-
+import os
 
 class AlreadyExistError(Exception):
 
@@ -240,9 +240,14 @@ class _TremaDatabase:
 	def set_welcome_msg(self, welcome_id, welcome_msg):
 		self._set_welcome_attr(welcome_id, "welcome_msg", welcome_msg)
 
+mongo_user = os.getenv('MONGO_USER')
+mongo_password = os.getenv('MONGO_PASSWORD')
+mongo_host = os.getenv('MONGO_HOST')
+mongo_port = os.getenv('MONGO_PORT')
+connection_string = f"mongodb://{mongo_user}:{mongo_password}@{mongo_host}:{mongo_port}"
 
 database = _TremaDatabase(
-	"trema", "mongodb://root:root@localhost:27017/?authSource=admin")
+	"trema", connection_string)
 
 
 def get_trema_database():

@@ -22,7 +22,7 @@ if not bot_token:
     sys.exit(-1)
 
 intents = discord.Intents.default()
-
+intents.members = True
 trema = discord.Bot(intents=intents)
 
 database = get_trema_database()

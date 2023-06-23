@@ -1,8 +1,5 @@
-FROM python:3.9-alpine
-
-# Git is required for requirements.txt
-RUN apk update
-RUN apk add git
+# Light based python image 
+FROM cicirello/pyaction:4.14.0
 
 # Work in /app for the application from container
 WORKDIR /app
