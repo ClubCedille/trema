@@ -27,6 +27,9 @@ def _create_config_cmds(trema_db):
 	@config.command(name="aide",
 		description="Informations sur les commandes /config")
 	async def aide(ctx):
+		
+		await ctx.respond(content="Aide demandé", ephemeral=True)
+
 		embed_title = _make_cmd_full_name(ctx.command)
 		instructions =\
 			"Le groupe de commandes **/config** permet de changer les paramètres de Trëma. "\
@@ -48,6 +51,9 @@ def _create_config_cmds(trema_db):
 	async def config_welcome_chan(ctx,
 			id_accueil: Option(str,
 			"Identifiant du canal où les nouveaux membres reçoivent le message d'accueil")):
+		
+		await ctx.respond(content="Configuration du canal d'accueil des nouveaux membres", ephemeral=True)
+
 		guild = ctx.guild
 		guild_id = ctx.guild_id
 		embed_title = _make_cmd_full_name(ctx.command) + _SPACE + id_accueil
@@ -89,6 +95,9 @@ def _create_config_cmds(trema_db):
 		description=f"{_MEMBER_MENTIONABLE} Changer le message affiché lorsqu'un membre arrive dans le serveur")
 	async def config_welcome_msg(ctx,
 			message: Option(str, f"{_MEMBER_MENTIONABLE} Nouveau message d'accueil.")):
+		
+		await ctx.respond(content="Configuration du message d'accueil", ephemeral=True)
+
 		guild_id = ctx.guild_id
 		embed_title = _make_cmd_full_name(ctx.command) + _SPACE + message
 		prev_value = trema_db.get_server_welcome_msg(guild_id)
@@ -109,6 +118,9 @@ def _create_config_cmds(trema_db):
 		description=f"{_MEMBER_MENTIONABLE} Changer le message affiché lorsqu'un membre quitte le serveur")
 	async def config_leave_msg(ctx,
 			message: Option(str, f"{_MEMBER_MENTIONABLE} Nouveau message de départ.")):
+		
+		await ctx.respond(content="Configuration du message de départ d'un membre", ephemeral=True)
+
 		guild_id = ctx.guild_id
 		embed_title = _make_cmd_full_name(ctx.command) + _SPACE + message
 		prev_value = trema_db.get_server_leave_msg(guild_id)
@@ -136,6 +148,9 @@ def _create_config_reminder_cmds(trema_db, config_group):
 		description=f"{_MEMBER_MENTIONABLE} Changez le message de rappel aux membres sans rôles.")
 	async def config_reminder_msg(ctx,
 			message: Option(str, f"{_MEMBER_MENTIONABLE} Message de rappel aux membres sans rôles.")):
+		
+		await ctx.respond(content="Configuration du message de rappel", ephemeral=True)
+
 		guild_id = ctx.guild_id
 		embed_title = _make_cmd_full_name(ctx.command) + _SPACE + message
 		prev_value = trema_db.get_server_reminder_msg(guild_id)
@@ -156,6 +171,9 @@ def _create_config_reminder_cmds(trema_db, config_group):
 		description="Changer le délai d'envoi du rappel (minutes) aux membres sans rôles.")
 	async def config_reminder_delay(ctx,
 			delai: Option(str, "Délai du rappel (minutes) aux membres sans rôles")):
+		
+		await ctx.respond(content="Configuration du délai de rappel", ephemeral=True)
+
 		guild_id = ctx.guild_id
 		embed_title = _make_cmd_full_name(ctx.command) + _SPACE + delai
 		prev_value = trema_db.get_server_reminder_delay(guild_id) / 60
