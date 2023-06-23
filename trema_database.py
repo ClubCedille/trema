@@ -245,8 +245,7 @@ mongo_password = os.getenv('MONGO_PASSWORD')
 mongo_host = os.getenv('MONGO_HOST')
 mongo_port = os.getenv('MONGO_PORT')
 connection_string = f"mongodb://{mongo_user}:{mongo_password}@{mongo_host}:{mongo_port}"
-if mongo_user and mongo_password and mongo_host and mongo_port:
-	database = _TremaDatabase("trema", connection_string)
+database = _TremaDatabase("trema", connection_string)
 
 def get_trema_database():
 	return database
