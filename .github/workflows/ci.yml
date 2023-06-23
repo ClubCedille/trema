@@ -1,5 +1,10 @@
 
 name: CI
+env:
+  MONGO_USER: "root"
+  MONGO_PASSWORD: "root"
+  MONGO_HOST: "localhost"
+  MONGO_PORT: 27017
 on:
   push:
     branches:
@@ -16,7 +21,7 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v2
-
+         
       - name: Start containers
         run: docker-compose -f "docker-compose-tests.yml" up -d
 
