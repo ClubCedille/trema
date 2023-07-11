@@ -243,8 +243,7 @@ class _TremaDatabase:
 mongo_user = os.getenv('MONGO_USER')
 mongo_password = os.getenv('MONGO_PASSWORD')
 mongo_host = os.getenv('MONGO_HOST')
-mongo_port = os.getenv('MONGO_PORT')
-connection_string = f"mongodb://{mongo_user}:{mongo_password}@{mongo_host}:{mongo_port}"
+connection_string = f"mongodb://{mongo_user}:{mongo_password}@{mongo_host}:27017"
 database = _TremaDatabase("trema", connection_string)
 
 def get_trema_database():
