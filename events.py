@@ -4,6 +4,8 @@ from discord_util import\
 	member_roles_are_default,\
 	send_delayed_dm
 
+from discord import TextChannel
+
 from text_format import\
 	make_mention
 
@@ -27,7 +29,23 @@ def create_event_reactions(trema_bot, trema_db):
 		welcome_chan = _get_welcome_chan(guild, trema_db)
 
 		welcome_msg = trema_db.get_server_welcome_msg(guild_id)
-		welcome_msg = make_mention(welcome_msg, member)
+		mention_dict = {
+			'{member}': member.mention,
+			'{username}': member.name,
+			'{server}': guild.name,
+			'{everyone}': '@everyone',
+			'{here}': '@here'
+    	}
+		for role in guild.roles:
+			placeholder = f'{{&{role.name}}}'
+			mention_dict[placeholder] = role.mention
+
+		for channel in guild.channels:
+			if isinstance(channel, TextChannel):
+				placeholder = f'{{#{channel.name}}}'
+				mention_dict[placeholder] = channel.mention
+	    
+		welcome_msg = make_mention(welcome_msg, mention_dict)
 		await welcome_chan.send(welcome_msg)
 
 		# A reminder if the new member does not select a role

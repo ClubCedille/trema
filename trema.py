@@ -6,6 +6,7 @@ Discord des clubs étudiants de l'ÉTS.
 import os
 import discord
 import sys
+from datetime import datetime
 
 from events import\
 	create_event_reactions
@@ -15,6 +16,8 @@ from slash_commands import\
 
 from trema_database import\
 	get_trema_database
+
+start_time = datetime.now()
 
 bot_token = os.getenv('DISCORD_TOKEN')
 if not bot_token:
@@ -28,6 +31,6 @@ trema = discord.Bot(intents=intents)
 database = get_trema_database()
 
 create_event_reactions(trema, database)
-create_slash_cmds(trema, database)
+create_slash_cmds(trema, database, start_time)
 
 trema.run(bot_token)
