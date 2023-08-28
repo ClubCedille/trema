@@ -1,6 +1,6 @@
 import asyncio
 import discord
-
+import os
 
 _ROLE_EVERYONE = "@everyone"
 
@@ -81,7 +81,7 @@ def member_roles_are_default(member):
 	return True
 
 
-async def send_delayed_dm(user, message, delay, condition=None):
+async def send_delayed_dm(user, message, delay, condition=None, message_type='text', filepath=None):
 	"""
 	Sends a direct message (DM) to the specified Discord user after a delay. If
 	a condition is given, it is evaluated when the delay is up and it must
@@ -93,8 +93,15 @@ async def send_delayed_dm(user, message, delay, condition=None):
 		delay (int): the time to wait, in seconds, before sending the message
 		condition (function): a Boolean function that takes no argument. The
 			message is sent if it is None or it returns True. Defaults to None.
+		message_type (str): the type of the message ('text', 'embed', 'file')
 	"""
 	await asyncio.sleep(delay)
 
 	if condition is None or condition():
-		await user.send(message)
+		if message_type == 'embed':
+			await user.send(embed=message)
+		elif message_type == 'file':
+			await user.send(file=message)
+			os.remove(filepath)
+		else:
+			await user.send(message)

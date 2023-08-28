@@ -1,28 +1,49 @@
 import asyncio
+from datetime import datetime
 from discord import\
 	Color,\
 	Embed,\
 	Option,\
 	SlashCommandGroup,\
+	utils,\
 	File
+
+from prompts import\
+	prompt_user,\
+	prompt_user_with_confirmation,\
+	prompt_user_with_date,\
+	prompt_for_image
+
+from text_format import\
+	_make_cmd_full_name,\
+	make_mention,\
+	generate_mention_dict,\
+	_make_config_confirm_embed,\
+	_make_config_display_embed,\
+	_make_config_error_embed
 
 from discord_util import\
 	get_channel_name
 
-from datetime import datetime
+from discord_util import\
+	send_delayed_dm
+
+
+from text_format import\
+	make_mention,\
+	generate_mention_dict
 
 _MEMBER_MENTIONABLE = "[@-]"
 _REQUEST_VALUE = "$"
 _SLASH = "/"
 _SPACE = " "
 
-
 def create_slash_cmds(trema_bot, trema_db, start_time):
 	config = _create_config_cmds(trema_db)
 	_create_config_reminder_cmds(trema_db, config)
 	_create_information_cmds(trema_bot, start_time)
+	_create_management_cmds(trema_bot)
 	trema_bot.add_application_command(config)
-
 
 def _create_config_cmds(trema_db):
 	config = SlashCommandGroup(name="config",
@@ -112,7 +133,6 @@ def _create_config_cmds(trema_db):
 						"- `{member}` pour mentionner le nouveau membre\n"
 						"- `{username}` pour mentionner un username\n"
 						"- `{server}` pour le nom du serveur\n"
-						"- `{channel}` pour le nom du canal\n"
 						"- `{&role}` pour mentionner un rôle par son nom\n"
 						"- `{#channel}` pour un lien vers un canal\n"
 						"- `{everyone}` pour `@everyone`\n"
@@ -128,7 +148,7 @@ def _create_config_cmds(trema_db):
 			return m.author.id == user.id and m.channel.id == dm_channel.id
 		
 		try:
-			user_message = await ctx.bot.wait_for('message', timeout=60.0, check=check)
+			user_message = await ctx.bot.wait_for('message', timeout=120.0, check=check)
 		except asyncio.TimeoutError:
 			await dm_channel.send("Temps écoulé. Opération annulée.")
 		else:
@@ -161,7 +181,6 @@ def _create_config_cmds(trema_db):
 		await ctx.respond(embed=response_embed, ephemeral=True)
 
 	return config
-
 
 def _create_config_reminder_cmds(trema_db, config_group):
 	rappel = config_group.create_subgroup("rappel",
@@ -254,38 +273,100 @@ def _create_information_cmds(trema_bot, start_time):
 			
 		await ctx.respond(embed=help_embed)
 
-def _make_cmd_full_name(cmd):
-	names = list()
+def _create_management_cmds(trema_bot):
 
-	while cmd is not None:
-		names.insert(0, cmd.name)
-		cmd = cmd.parent
+	@trema_bot.command(name="annonce", description="Informations sur Trëma")
+	async def annonce(ctx):
 
-	full_name = _SLASH + _SPACE.join(names)
+		await ctx.respond("Veuillez vérifier vos messages privés pour des instructions supplémentaires.", ephemeral=True)
 
-	return full_name
+		mention_dict = generate_mention_dict(ctx.guild)
+		
+		time_and_date, delay = await prompt_user_with_date(ctx, "Quelle est la date et l'heure de l'annonce ? (AAAA-MM-JJ HH:MM:SS)", 'Date et heure')
+		if not time_and_date:
+			return
 
+		title = await prompt_user(ctx, "Quel est le titre de l\'annonce ?", 'Titre')
+		if not title:
+			return
 
-def _make_config_confirm_embed(title, updated_value, prev_value):
-	confirm_embed = Embed(
-		title=title,
-		description=f"Nouvelle valeur:\n`{updated_value}`\n\nValeur précédente:\n`{prev_value}`",
-		color=Color.green())
-	return confirm_embed
+		body = await prompt_user(ctx, "Entrez le corps de l\'annonce:" 
+			   						"\nPour personnaliser ce message, vous pouvez utiliser les mentions suivantes:\n"
+									"- `{username}` pour mentionner un username\n"
+									"- `{server}` pour le nom du serveur\n"
+									"- `{&role}` pour mentionner un rôle par son nom\n"
+									"- `{#channel}` pour un lien vers un canal\n"
+									"- `{everyone}` pour `@everyone`\n"
+									"- `{here}` pour `@here`\n\n", 'Contenu de l\'annonce')
+		if not body:
+			return
 
+		try_again_msg = True
+		while True:
+			try:
+				channel_name = await prompt_user(ctx, 'Entrer le canal pour afficher l\'annonce : ', 'Choisir canal')
+				if not channel_name:
+					return
+				channel = utils.get(ctx.guild.text_channels, name=channel_name)
+				
+				if channel is not None:
+					confirm_msg = await prompt_user_with_confirmation(ctx, f"Canal :`{channel}`. Confirmez-vous le canal trouvé ?", 'Choisir canal')
+					
+					if confirm_msg :
+						break
+				else:
+					try_again_msg = await prompt_user_with_confirmation(ctx, "Canal non trouvé. Voulez-vous essayer à nouveau ?", 'Choisir canal')
+					
+					if not try_again_msg:
+						await ctx.author.send("Operation annulé.")
+						break
 
-def _make_config_display_embed(title, current_value):
-	display_embed = Embed(
-		title=title,
-		description=f"Valeur actuelle: {current_value}",
-		color=Color.green())
-	return display_embed
+			except asyncio.TimeoutError:
+				await ctx.author.send("Temps écoulé. Opération annulée.")
+				break
+		
+		# User canceled the operation
+		if not try_again_msg:
+			return
 
+		is_embed = await prompt_user_with_confirmation(ctx, "Voulez-vous que l'annonce soit intégrée (embedded)?")
+		image_path = None
+		if is_embed == True:
+			image_url = await prompt_user(ctx, 'Entrez l\'URL de l\'image à intégrer (ou tapez \'aucun\'):',  'Image à intégrer')
+			if not image_url:
+				return
+		elif is_embed == False:
+			image_path = await prompt_for_image(ctx)
+		else :
+			return
 
-def _make_config_error_embed(title, current_value, error_msg):
-	error_embed = Embed(
-		title=title,
-		description=
-			f"ERREUR!\n{error_msg}\n\nValeur actuelle: {current_value}",
-		color=Color.red())
-	return error_embed
+		body_with_mentions = make_mention(body, mention_dict)
+
+		confirmation = Embed(title="Détails de l'annonce", description=f"Date de l'annonce : {time_and_date}\nCanal pour l'annonce : {channel}\n\nAperçu de l'annonce dans le prochain message :", color=Color.blurple())
+		await ctx.author.send(embed=confirmation)	
+
+		if is_embed: 
+			annonce = Embed(title=title, description=body_with_mentions, color=Color.blurple())
+			if image_url.lower() != 'aucun':
+				annonce.set_thumbnail(url=image_url)
+			await ctx.author.send(embed=annonce)
+		else:
+			formatted_title = f"**{title}**\n"
+			formatted_body = f"{body_with_mentions}"
+			annonce = f"{formatted_title}\n{formatted_body}"
+			await ctx.author.send(annonce)
+			if image_path:
+				file = File(image_path, filename=image_path.split("/")[-1])
+				await ctx.author.send(file=file)
+
+		final_confirmation = await prompt_user_with_confirmation(ctx, "Confirmez-vous ces détails ?")
+	
+		if final_confirmation:
+			condition = lambda: True 
+			asyncio.create_task(send_delayed_dm(channel, annonce, delay, condition, 'embed' if is_embed else 'text'))
+			if image_path:
+				file = File(image_path, filename=image_path.split("/")[-1])
+				asyncio.create_task(send_delayed_dm(channel, file, delay, condition, 'file', image_path))
+			await ctx.author.send('Annonce programmée.')
+		else:
+			await ctx.author.send('Annonce annulée.')
