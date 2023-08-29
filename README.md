@@ -20,21 +20,26 @@ Trëma est un bot Discord développé par le club CEDILLE de l'ÉTS. Le but de c
 __Commandes de Configuration (/config)__
 * /config aide: Fournit des informations sur les différentes commandes de configuration.
 
-* /config canalaccueil [id_accueil]: Configure le canal où les nouveaux membres seront accueillis. L'ID du canal est requis.
+* /config canalaccueil [id_accueil]: Configure le canal où les nouveaux membres seront accueillis. L'ID du canal est requis. Rôle admin requis.
 
-* /config msgaccueil: Permet de personnaliser le message d'accueil envoyé aux nouveaux membres. Vous recevrez un message privé pour configurer ce texte.
+* /config msgaccueil: Permet de personnaliser le message d'accueil envoyé aux nouveaux membres. Vous recevrez un message privé pour configurer ce texte. Rôle admin requis.
 
-* /config msgdepart [message]: Permet de configurer le message envoyé lorsque quelqu'un quitte le serveur.
+* /config msgdepart [message]: Permet de configurer le message envoyé lorsque quelqu'un quitte le serveur. Rôle admin requis.
 
+* /config roleAdmin [role_id]: Permet de configurer le rôle admin dans le serveur. Ce rôle permet d'exécuter les commande de configuration, rappel et la commande annonce. Rôle de propriétaire de serveur requis.
+* 
 __Sous-commandes de Rappel (/config rappel)__
-* /config rappel message [message]: Configure le message de rappel envoyé aux membres qui n'ont pas encore choisi de rôle. 
+* /config rappel message [message]: Configure le message de rappel envoyé aux membres qui n'ont pas encore choisi de rôle. Rôle admin requis. 
 
-* /config rappel delai [délai]: Définit le délai en minutes avant que le message de rappel soit envoyé.
+* /config rappel delai [délai]: Définit le délai en minutes avant que le message de rappel soit envoyé. Rôle admin requis.
 
 __Commandes d'Information__
 * /ping: Affiche la latence du bot et d'autres statistiques.
 
 * /info: Fournit des informations générales sur le bot Trëma.
+
+__Commandes annonce__
+* /annonce: Permet de planifier une annonce. 
 
 ### Événements
 * on_guild_join: Enregistre le serveur dans la base de données lorsqu'il rejoint un nouveau serveur.
