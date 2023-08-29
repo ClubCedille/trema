@@ -23,9 +23,9 @@ def make_mention(text, mention_dict):
             text = text.replace(placeholder, mention)
     return text
 
-def generate_mention_dict(guild):
+def generate_mention_dict(guild, newMember = None):
     mention_dict = {
-        '{member}': '{member}',  
+        '{member}': newMember.mention,  
         '{server}': guild.name,
         '{everyone}': '@everyone',
         '{here}': '@here'
