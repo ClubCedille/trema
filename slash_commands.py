@@ -1,33 +1,127 @@
 import asyncio
+from datetime import datetime
 from discord import\
 	Color,\
 	Embed,\
 	Option,\
 	SlashCommandGroup,\
+	utils,\
 	File
+
+from discord.ext import commands
+
+from prompts import\
+	prompt_user,\
+	prompt_user_with_confirmation,\
+	prompt_user_with_date,\
+	prompt_for_image
+
+from text_format import\
+	_make_cmd_full_name,\
+	make_mention,\
+	generate_mention_dict,\
+	_make_config_confirm_embed,\
+	_make_config_display_embed,\
+	_make_config_error_embed
 
 from discord_util import\
 	get_channel_name
 
-from datetime import datetime
+from discord_util import\
+	send_delayed_dm
+
+
+from text_format import\
+	make_mention,\
+	generate_mention_dict
 
 _MEMBER_MENTIONABLE = "[@-]"
 _REQUEST_VALUE = "$"
-_SLASH = "/"
 _SPACE = " "
 
+def is_authorized(trema_db):
+	async def predicate(ctx):
+		admin_role_id = trema_db.get_server_admin_role(ctx.guild.id)
+		isAllowed = ctx.author.id == ctx.guild.owner_id or any(role.id == admin_role_id for role in ctx.author.roles)
+
+		if not isAllowed:
+			admin_role = ctx.guild.get_role(admin_role_id)
+			admin_role_name = 'Owner' if admin_role is None else admin_role.name
+			embed_error = _make_config_error_embed(
+				"Manque de permission",
+				ctx.command,
+				f"Vous n'êtes pas autorisé à utiliser cette commande. Le rôle {admin_role_name} est requis."
+			)
+			await ctx.respond(embed=embed_error, ephemeral=True)
+		return isAllowed
+	return commands.check(predicate)
 
 def create_slash_cmds(trema_bot, trema_db, start_time):
 	config = _create_config_cmds(trema_db)
 	_create_config_reminder_cmds(trema_db, config)
 	_create_information_cmds(trema_bot, start_time)
+	_create_management_cmds(trema_bot, trema_db)
 	trema_bot.add_application_command(config)
-
 
 def _create_config_cmds(trema_db):
 	config = SlashCommandGroup(name="config",
 		description="Configurez les options de Trëma pour votre serveur.")
 
+	@config.command(name="adminrole",
+		description="Configurer le rôle d'administrateur de Trëma pour ce serveur.")
+	async def config_admin_role(ctx,
+			role_id: Option(str, "L'ID du rôle d'administrateur ou 'None' pour retirer le rôle.")):
+
+		guild_id = ctx.guild_id
+		guild = ctx.guild
+		owner_id = guild.owner_id
+		embed_title = _make_cmd_full_name(ctx.command) + _SPACE + str(role_id)
+
+		# Get previous value from the database
+		prev_role_id = trema_db.get_server_admin_role(guild_id)
+		prev_role_name = guild.get_role(prev_role_id)
+		prev_value = f"{prev_role_name} ({prev_role_id})" if prev_role_name else 'Owner'
+
+		# Check if the user is the owner of the server
+		if ctx.author.id != owner_id:
+			error_embed = _make_config_error_embed(embed_title, prev_value,
+				"Seul le propriétaire du serveur peut changer ce rôle.")
+			await ctx.respond(embed=error_embed, ephemeral=True)
+			return
+
+		if role_id.lower() == "none":  # Check if the user wants to remove the admin role
+			trema_db.set_server_admin_role(guild_id, None)
+			response_embed = _make_config_confirm_embed(
+				embed_title, 'Owner', prev_value)
+			await ctx.respond(embed=response_embed, ephemeral=True)
+			return
+
+		try:
+			role_id = int(role_id)
+		except ValueError:
+			error_embed = _make_config_error_embed(embed_title, prev_value,
+													f"{role_id} n'est pas un ID de rôle valide ou 'None'.")
+			await ctx.respond(embed=error_embed, ephemeral=True)
+			return
+		
+		# Check if the role exists in the server
+		role = guild.get_role(role_id)
+		if role is None:
+			error_embed = _make_config_error_embed(embed_title, prev_value,
+				f"Le rôle avec l'ID {role_id} n'existe pas dans ce serveur.")
+			await ctx.respond(embed=error_embed, ephemeral=True)
+			return
+
+		# All checks passed, update the value in the database
+		trema_db.set_server_admin_role(guild_id, role_id)
+		confirmed_role_id = trema_db.get_server_admin_role(guild_id)
+		confirmed_role_name = guild.get_role(confirmed_role_id).name
+		updated_value = f"{confirmed_role_name} ({confirmed_role_id})"
+		response_embed = _make_config_confirm_embed(
+			embed_title, updated_value, prev_value)
+
+		await ctx.respond(embed=response_embed, ephemeral=True)
+	
 	@config.command(name="aide",
 		description="Informations sur les commandes /config")
 	async def aide(ctx):
@@ -48,8 +142,10 @@ def _create_config_cmds(trema_db):
 			color=Color.blue())
 		await ctx.respond(embed=help_embed, ephemeral=True)
 
+
 	@config.command(name="canalaccueil",
 		description="Changer le canal d'accueil des nouveaux membres")
+	@is_authorized(trema_db)
 	async def config_welcome_chan(ctx,
 			id_accueil: Option(str,
 			"Identifiant du canal où les nouveaux membres reçoivent le message d'accueil")):
@@ -93,6 +189,7 @@ def _create_config_cmds(trema_db):
 
 	@config.command(name="msgaccueil",
 		description=f"{_MEMBER_MENTIONABLE} Changer le message affiché lorsqu'un membre arrive dans le serveur")
+	@is_authorized(trema_db)
 	async def config_welcome_msg(ctx):
 		
 		guild_id = ctx.guild_id
@@ -112,7 +209,6 @@ def _create_config_cmds(trema_db):
 						"- `{member}` pour mentionner le nouveau membre\n"
 						"- `{username}` pour mentionner un username\n"
 						"- `{server}` pour le nom du serveur\n"
-						"- `{channel}` pour le nom du canal\n"
 						"- `{&role}` pour mentionner un rôle par son nom\n"
 						"- `{#channel}` pour un lien vers un canal\n"
 						"- `{everyone}` pour `@everyone`\n"
@@ -128,7 +224,7 @@ def _create_config_cmds(trema_db):
 			return m.author.id == user.id and m.channel.id == dm_channel.id
 		
 		try:
-			user_message = await ctx.bot.wait_for('message', timeout=60.0, check=check)
+			user_message = await ctx.bot.wait_for('message', timeout=120.0, check=check)
 		except asyncio.TimeoutError:
 			await dm_channel.send("Temps écoulé. Opération annulée.")
 		else:
@@ -141,6 +237,7 @@ def _create_config_cmds(trema_db):
 
 	@config.command(name="msgdepart",
 		description=f"{_MEMBER_MENTIONABLE} Changer le message affiché lorsqu'un membre quitte le serveur")
+	@is_authorized(trema_db)
 	async def config_leave_msg(ctx,
 			message: Option(str, f"{_MEMBER_MENTIONABLE} Nouveau message de départ.")):
 		
@@ -162,13 +259,13 @@ def _create_config_cmds(trema_db):
 
 	return config
 
-
 def _create_config_reminder_cmds(trema_db, config_group):
 	rappel = config_group.create_subgroup("rappel",
 		description="Configurez le rappel aux membres qui n'ont pas choisi de rôles.")
 
 	@rappel.command(name="message",
 		description=f"{_MEMBER_MENTIONABLE} Changez le message de rappel aux membres sans rôles.")
+	@is_authorized(trema_db)
 	async def config_reminder_msg(ctx,
 			message: Option(str, f"{_MEMBER_MENTIONABLE} Message de rappel aux membres sans rôles.")):
 		
@@ -190,6 +287,7 @@ def _create_config_reminder_cmds(trema_db, config_group):
 
 	@rappel.command(name="delai",
 		description="Changer le délai d'envoi du rappel (minutes) aux membres sans rôles.")
+	@is_authorized(trema_db)
 	async def config_reminder_delay(ctx,
 			delai: Option(str, "Délai du rappel (minutes) aux membres sans rôles")):
 		
@@ -234,7 +332,7 @@ def _create_information_cmds(trema_bot, start_time):
 		)
 		response_embed.add_field(name="Latency", value=f"{latency}ms")
 		response_embed.add_field(name="Uptime", value=uptime_str)
-		response_embed.add_field(name="Trëma server Count", value=str(server_count))
+		response_embed.add_field(name=f'{trema_bot.user} server Count', value=str(server_count))
 
 		await ctx.respond(embed=response_embed)
 
@@ -254,38 +352,101 @@ def _create_information_cmds(trema_bot, start_time):
 			
 		await ctx.respond(embed=help_embed)
 
-def _make_cmd_full_name(cmd):
-	names = list()
+def _create_management_cmds(trema_bot, trema_db):
 
-	while cmd is not None:
-		names.insert(0, cmd.name)
-		cmd = cmd.parent
+	@trema_bot.command(name="annonce", description="Informations sur Trëma")
+	@is_authorized(trema_db)
+	async def annonce(ctx):
 
-	full_name = _SLASH + _SPACE.join(names)
+		await ctx.respond("Veuillez vérifier vos messages privés pour des instructions supplémentaires.", ephemeral=True)
 
-	return full_name
+		mention_dict = generate_mention_dict(ctx.guild)
+		
+		time_and_date, delay = await prompt_user_with_date(ctx, "Quelle est la date et l'heure de l'annonce ? (AAAA-MM-JJ HH:MM:SS)", 'Date et heure')
+		if not time_and_date:
+			return
 
+		title = await prompt_user(ctx, "Quel est le titre de l\'annonce ?", 'Titre')
+		if not title:
+			return
 
-def _make_config_confirm_embed(title, updated_value, prev_value):
-	confirm_embed = Embed(
-		title=title,
-		description=f"Nouvelle valeur:\n`{updated_value}`\n\nValeur précédente:\n`{prev_value}`",
-		color=Color.green())
-	return confirm_embed
+		body = await prompt_user(ctx, "Entrez le corps de l\'annonce:" 
+			   						"\nPour personnaliser ce message, vous pouvez utiliser les mentions suivantes:\n"
+									"- `{username}` pour mentionner un username\n"
+									"- `{server}` pour le nom du serveur\n"
+									"- `{&role}` pour mentionner un rôle par son nom\n"
+									"- `{#channel}` pour un lien vers un canal\n"
+									"- `{everyone}` pour `@everyone`\n"
+									"- `{here}` pour `@here`\n\n", 'Contenu de l\'annonce')
+		if not body:
+			return
 
+		try_again_msg = True
+		while True:
+			try:
+				channel_name = await prompt_user(ctx, 'Entrer le canal pour afficher l\'annonce : ', 'Choisir canal')
+				if not channel_name:
+					return
+				channel = utils.get(ctx.guild.text_channels, name=channel_name)
+				
+				if channel is not None:
+					confirm_msg = await prompt_user_with_confirmation(ctx, f"Canal :`{channel}`. Confirmez-vous le canal trouvé ?", 'Choisir canal')
+					
+					if confirm_msg :
+						break
+				else:
+					try_again_msg = await prompt_user_with_confirmation(ctx, "Canal non trouvé. Voulez-vous essayer à nouveau ?", 'Choisir canal')
+					
+					if not try_again_msg:
+						await ctx.author.send("Operation annulé.")
+						break
 
-def _make_config_display_embed(title, current_value):
-	display_embed = Embed(
-		title=title,
-		description=f"Valeur actuelle: {current_value}",
-		color=Color.green())
-	return display_embed
+			except asyncio.TimeoutError:
+				await ctx.author.send("Temps écoulé. Opération annulée.")
+				break
+		
+		# User canceled the operation
+		if not try_again_msg:
+			return
 
+		is_embed = await prompt_user_with_confirmation(ctx, "Voulez-vous que l'annonce soit intégrée (embedded)?")
+		image_path = None
+		if is_embed == True:
+			image_url = await prompt_user(ctx, 'Entrez l\'URL de l\'image à intégrer (ou tapez \'aucun\'):',  'Image à intégrer')
+			if not image_url:
+				return
+		elif is_embed == False:
+			image_path = await prompt_for_image(ctx)
+		else :
+			return
 
-def _make_config_error_embed(title, current_value, error_msg):
-	error_embed = Embed(
-		title=title,
-		description=
-			f"ERREUR!\n{error_msg}\n\nValeur actuelle: {current_value}",
-		color=Color.red())
-	return error_embed
+		body_with_mentions = make_mention(body, mention_dict)
+
+		confirmation = Embed(title="Détails de l'annonce", description=f"Date de l'annonce : {time_and_date}\nCanal pour l'annonce : {channel}\n\nAperçu de l'annonce dans le prochain message :", color=Color.blurple())
+		await ctx.author.send(embed=confirmation)	
+
+		if is_embed: 
+			annonce = Embed(title=title, description=body_with_mentions, color=Color.blurple())
+			if image_url.lower() != 'aucun':
+				annonce.set_thumbnail(url=image_url)
+			await ctx.author.send(embed=annonce)
+		else:
+			formatted_title = f"**{title}**\n"
+			formatted_body = f"{body_with_mentions}"
+			annonce = f"{formatted_title}\n{formatted_body}"
+			await ctx.author.send(annonce)
+			if image_path:
+				file = File(image_path, filename=image_path.split("/")[-1])
+				await ctx.author.send(file=file)
+
+		final_confirmation = await prompt_user_with_confirmation(ctx, "Confirmez-vous ces détails ?")
+	
+		if final_confirmation:
+			condition = lambda: True 
+			asyncio.create_task(send_delayed_dm(channel, annonce, delay, condition, 'embed' if is_embed else 'text'))
+			if image_path:
+				file = File(image_path, filename=image_path.split("/")[-1])
+				asyncio.create_task(send_delayed_dm(channel, file, delay, condition, 'file', image_path))
+			await ctx.author.send('Annonce programmée.')
+		else:
+			await ctx.author.send('Annonce annulée.')
