@@ -25,11 +25,13 @@ def make_mention(text, mention_dict):
 
 def generate_mention_dict(guild, newMember = None):
     mention_dict = {
-        '{member}': newMember.mention,  
         '{server}': guild.name,
         '{everyone}': '@everyone',
         '{here}': '@here'
     }
+
+    # For mentionning a new member
+    mention_dict['{newMember}'] = newMember.mention if newMember is not None else ''
 
     for member in guild.members:
         placeholder = f'{{{member.name}}}'
