@@ -1,4 +1,10 @@
-from discord import TextChannel
+from discord import\
+    TextChannel,\
+    Color,\
+    Embed
+
+_SLASH = "/"
+_SPACE = " "
 
 def make_mention(text, mention_dict):
     """

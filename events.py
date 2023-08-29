@@ -7,12 +7,13 @@ from discord_util import\
 from text_format import\
 	make_mention,\
 	generate_mention_dict
-	
+
 def _get_welcome_chan(guild, trema_db):
 	guild_id = guild.id
 	welcome_chan_id = trema_db.get_server_welcome_chan_id(guild_id)
 	welcome_chan = guild.get_channel(welcome_chan_id)
 	return welcome_chan
+
 
 
 def create_event_reactions(trema_bot, trema_db):
@@ -53,5 +54,3 @@ def create_event_reactions(trema_bot, trema_db):
 	@trema_bot.event
 	async def on_ready():
 		print(f"{trema_bot.user} fonctionne.")
-
-

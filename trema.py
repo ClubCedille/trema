@@ -2,7 +2,6 @@
 Trëma est un robot logiciel pour le serveur
 Discord des clubs étudiants de l'ÉTS.
 """
-
 import os
 import discord
 import sys
@@ -32,5 +31,5 @@ database = get_trema_database()
 
 create_event_reactions(trema, database)
 create_slash_cmds(trema, database, start_time)
-
+		
 trema.run(bot_token)

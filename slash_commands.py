@@ -8,6 +8,8 @@ from discord import\
 	utils,\
 	File
 
+from discord.ext import commands
+
 from prompts import\
 	prompt_user,\
 	prompt_user_with_confirmation,\
@@ -35,20 +37,91 @@ from text_format import\
 
 _MEMBER_MENTIONABLE = "[@-]"
 _REQUEST_VALUE = "$"
-_SLASH = "/"
 _SPACE = " "
+
+def is_authorized(trema_db):
+	async def predicate(ctx):
+		admin_role_id = trema_db.get_server_admin_role(ctx.guild.id)
+		isAllowed = ctx.author.id == ctx.guild.owner_id or any(role.id == admin_role_id for role in ctx.author.roles)
+
+		if not isAllowed:
+			admin_role = ctx.guild.get_role(admin_role_id)
+			admin_role_name = 'Owner' if admin_role is None else admin_role.name
+			embed_error = _make_config_error_embed(
+				"Manque de permission",
+				ctx.command,
+				f"Vous n'êtes pas autorisé à utiliser cette commande. Le rôle {admin_role_name} est requis."
+			)
+			await ctx.respond(embed=embed_error, ephemeral=True)
+		return isAllowed
+	return commands.check(predicate)
 
 def create_slash_cmds(trema_bot, trema_db, start_time):
 	config = _create_config_cmds(trema_db)
 	_create_config_reminder_cmds(trema_db, config)
 	_create_information_cmds(trema_bot, start_time)
-	_create_management_cmds(trema_bot)
+	_create_management_cmds(trema_bot, trema_db)
 	trema_bot.add_application_command(config)
 
 def _create_config_cmds(trema_db):
 	config = SlashCommandGroup(name="config",
 		description="Configurez les options de Trëma pour votre serveur.")
 
+	@config.command(name="adminrole",
+		description="Configurer le rôle d'administrateur de Trëma pour ce serveur.")
+	async def config_admin_role(ctx,
+			role_id: Option(str, "L'ID du rôle d'administrateur ou 'None' pour retirer le rôle.")):
+
+		guild_id = ctx.guild_id
+		guild = ctx.guild
+		owner_id = guild.owner_id
+		embed_title = _make_cmd_full_name(ctx.command) + _SPACE + str(role_id)
+
+		# Get previous value from the database
+		prev_role_id = trema_db.get_server_admin_role(guild_id)
+		prev_role_name = guild.get_role(prev_role_id)
+		prev_value = f"{prev_role_name} ({prev_role_id})" if prev_role_name else 'Owner'
+
+		# Check if the user is the owner of the server
+		if ctx.author.id != owner_id:
+			error_embed = _make_config_error_embed(embed_title, prev_value,
+				"Seul le propriétaire du serveur peut changer ce rôle.")
+			await ctx.respond(embed=error_embed, ephemeral=True)
+			return
+
+		if role_id.lower() == "none":  # Check if the user wants to remove the admin role
+			trema_db.set_server_admin_role(guild_id, None)
+			response_embed = _make_config_confirm_embed(
+				embed_title, 'Owner', prev_value)
+			await ctx.respond(embed=response_embed, ephemeral=True)
+			return
+
+		try:
+			role_id = int(role_id)
+		except ValueError:
+			error_embed = _make_config_error_embed(embed_title, prev_value,
+													f"{role_id} n'est pas un ID de rôle valide ou 'None'.")
+			await ctx.respond(embed=error_embed, ephemeral=True)
+			return
+		
+		# Check if the role exists in the server
+		role = guild.get_role(role_id)
+		if role is None:
+			error_embed = _make_config_error_embed(embed_title, prev_value,
+				f"Le rôle avec l'ID {role_id} n'existe pas dans ce serveur.")
+			await ctx.respond(embed=error_embed, ephemeral=True)
+			return
+
+		# All checks passed, update the value in the database
+		trema_db.set_server_admin_role(guild_id, role_id)
+		confirmed_role_id = trema_db.get_server_admin_role(guild_id)
+		confirmed_role_name = guild.get_role(confirmed_role_id).name
+		updated_value = f"{confirmed_role_name} ({confirmed_role_id})"
+		response_embed = _make_config_confirm_embed(
+			embed_title, updated_value, prev_value)
+
+		await ctx.respond(embed=response_embed, ephemeral=True)
+	
 	@config.command(name="aide",
 		description="Informations sur les commandes /config")
 	async def aide(ctx):
@@ -69,8 +142,10 @@ def _create_config_cmds(trema_db):
 			color=Color.blue())
 		await ctx.respond(embed=help_embed, ephemeral=True)
 
+
 	@config.command(name="canalaccueil",
 		description="Changer le canal d'accueil des nouveaux membres")
+	@is_authorized(trema_db)
 	async def config_welcome_chan(ctx,
 			id_accueil: Option(str,
 			"Identifiant du canal où les nouveaux membres reçoivent le message d'accueil")):
@@ -114,6 +189,7 @@ def _create_config_cmds(trema_db):
 
 	@config.command(name="msgaccueil",
 		description=f"{_MEMBER_MENTIONABLE} Changer le message affiché lorsqu'un membre arrive dans le serveur")
+	@is_authorized(trema_db)
 	async def config_welcome_msg(ctx):
 		
 		guild_id = ctx.guild_id
@@ -161,6 +237,7 @@ def _create_config_cmds(trema_db):
 
 	@config.command(name="msgdepart",
 		description=f"{_MEMBER_MENTIONABLE} Changer le message affiché lorsqu'un membre quitte le serveur")
+	@is_authorized(trema_db)
 	async def config_leave_msg(ctx,
 			message: Option(str, f"{_MEMBER_MENTIONABLE} Nouveau message de départ.")):
 		
@@ -188,6 +265,7 @@ def _create_config_reminder_cmds(trema_db, config_group):
 
 	@rappel.command(name="message",
 		description=f"{_MEMBER_MENTIONABLE} Changez le message de rappel aux membres sans rôles.")
+	@is_authorized(trema_db)
 	async def config_reminder_msg(ctx,
 			message: Option(str, f"{_MEMBER_MENTIONABLE} Message de rappel aux membres sans rôles.")):
 		
@@ -209,6 +287,7 @@ def _create_config_reminder_cmds(trema_db, config_group):
 
 	@rappel.command(name="delai",
 		description="Changer le délai d'envoi du rappel (minutes) aux membres sans rôles.")
+	@is_authorized(trema_db)
 	async def config_reminder_delay(ctx,
 			delai: Option(str, "Délai du rappel (minutes) aux membres sans rôles")):
 		
@@ -253,7 +332,7 @@ def _create_information_cmds(trema_bot, start_time):
 		)
 		response_embed.add_field(name="Latency", value=f"{latency}ms")
 		response_embed.add_field(name="Uptime", value=uptime_str)
-		response_embed.add_field(name="Trëma server Count", value=str(server_count))
+		response_embed.add_field(name=f'{trema_bot.user} server Count', value=str(server_count))
 
 		await ctx.respond(embed=response_embed)
 
@@ -273,9 +352,10 @@ def _create_information_cmds(trema_bot, start_time):
 			
 		await ctx.respond(embed=help_embed)
 
-def _create_management_cmds(trema_bot):
+def _create_management_cmds(trema_bot, trema_db):
 
 	@trema_bot.command(name="annonce", description="Informations sur Trëma")
+	@is_authorized(trema_db)
 	async def annonce(ctx):
 
 		await ctx.respond("Veuillez vérifier vos messages privés pour des instructions supplémentaires.", ephemeral=True)

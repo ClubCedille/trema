@@ -190,7 +190,8 @@ class _TremaDatabase:
 			"name": server.name,
 			"joined_at": str(datetime.now()),
 			"announce_chan_id": None,
-			"welcome_id": welcome_id
+			"welcome_id": welcome_id,
+			"admin_role": None
 		}
 		self.add_document("server", server_doc)
 
@@ -239,6 +240,12 @@ class _TremaDatabase:
 
 	def set_welcome_msg(self, welcome_id, welcome_msg):
 		self._set_welcome_attr(welcome_id, "welcome_msg", welcome_msg)
+
+	def get_server_admin_role(self, server_id):
+		return self._get_server_attr(server_id, "admin_role")
+
+	def set_server_admin_role(self, server_id, admin_role):
+		self._set_document_attr("server", server_id, "admin_role", admin_role)
 
 mongo_user = os.getenv('MONGO_USER')
 mongo_password = os.getenv('MONGO_PASSWORD')
