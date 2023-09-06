@@ -21,6 +21,8 @@ services:
       - .env
     networks:
       - app_network
+    ports:
+      - 6000:6000
 
 networks:
   app_network:

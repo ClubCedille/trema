@@ -1,0 +1,8 @@
+{
+	"type": "object",
+	"properties": {
+		"webhookName": {"type": "string"},
+		"channelID": {"type": "string"},
+		"unique_url": {"type": "string"}
+	}
+}

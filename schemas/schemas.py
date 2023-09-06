@@ -13,6 +13,7 @@ class Schema(Enum):
 	# The values must match the schemas' file name.
 	SERVER = "server"
 	WELCOME = "welcome"
+	webhooks = "webhooks"
 
 	@staticmethod
 	def from_str(a_string):

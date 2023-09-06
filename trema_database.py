@@ -185,13 +185,17 @@ class _TremaDatabase:
 		}
 		self.add_document("welcome", welcome_doc)
 
+		# Initialize an empty list for webhooks
+		webhooks = []
+
 		server_doc = {
 			"_id": server.id,
 			"name": server.name,
 			"joined_at": str(datetime.now()),
 			"announce_chan_id": None,
 			"welcome_id": welcome_id,
-			"admin_role": None
+			"admin_role": None,
+			"webhooks": webhooks 
 		}
 		self.add_document("server", server_doc)
 
@@ -246,6 +250,60 @@ class _TremaDatabase:
 
 	def set_server_admin_role(self, server_id, admin_role):
 		self._set_document_attr("server", server_id, "admin_role", admin_role)
+
+	def create_webhook(self, webhookName, channelID, unique_url, guild_id):
+		server_collection = self._get_collection("server")
+		new_webhook = {
+			"webhookName": webhookName,
+			"channelID": channelID,
+			"unique_url": unique_url
+		}
+		server_collection.update_one(
+			{"_id": guild_id},
+			{"$push": {"webhooks": new_webhook}}
+		)
+
+	def get_all_webhooks(self, guild_id):
+		server_collection = self._get_collection("server")
+		server_doc = server_collection.find_one({"_id": guild_id})
+		return server_doc.get("webhooks", [])
+	
+	def delete_webhook(self, webhookName, guild_id):
+		server_collection = self._get_collection("server")
+		server_collection.update_one(
+			{"_id": guild_id},
+			{"$pull": {"webhooks": {"webhookName": webhookName}}}
+		)
+
+	def update_webhook_channel(self, webhookName, newChannelID, guild_id):
+		server_collection = self._get_collection("server")
+		query = {"_id": guild_id, "webhooks.webhookName": webhookName}
+		update = {"$set": {"webhooks.$.channelID": newChannelID}}
+		server_collection.update_one(query, update)
+
+	def get_channel_by_webhook(self, uuid):
+		server_collection = self._get_collection("server")
+		server_doc = server_collection.find_one({"webhooks.unique_url": uuid})
+		if server_doc is None:
+			return None
+
+		webhooks = server_doc.get("webhooks", [])
+		for webhook in webhooks:
+			if webhook["unique_url"] == uuid:
+				return webhook["channelID"]
+		return None
+
+	def get_webhook_by_name(self, webhookName, guild_id):
+		server_collection = self._get_collection("server")
+		server_doc = server_collection.find_one({"_id": guild_id})
+		if server_doc is None:
+			return None
+
+		webhooks = server_doc.get("webhooks", [])
+		for webhook in webhooks:
+			if webhook["webhookName"] == webhookName:
+				return webhook
+		return None
 
 mongo_user = os.getenv('MONGO_USER')
 mongo_password = os.getenv('MONGO_PASSWORD')
