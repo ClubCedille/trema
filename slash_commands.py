@@ -464,6 +464,7 @@ def _create_webhooks_cmds(trema_db):
 
 	@webhook.command(name="create",
 		description="Créer un webhook pour le canal spécifié")
+	@is_authorized(trema_db)
 	async def create_webhook(ctx,
 			channel_id: Option(str, "Le canal affilié au webhook qui sera créé"),
 			webhook_name: Option(str, "Le nom du webhook qui sera créé")):
@@ -479,6 +480,7 @@ def _create_webhooks_cmds(trema_db):
 
 	@webhook.command(name="list",
 		description="Liste des webhooks existants")
+	@is_authorized(trema_db)
 	async def list_webhooks(ctx):
 		webhooks = trema_db.get_all_webhooks(ctx.guild.id)
 		if webhooks == []:
@@ -496,6 +498,7 @@ def _create_webhooks_cmds(trema_db):
 
 	@webhook.command(name="delete",
 		description="Supprime le webhook référencé")
+	@is_authorized(trema_db)
 	async def delete_webhook(ctx, webhook_name: Option(str, "Le nom du webhook à supprimer")):
 		# Your logic here to delete the specified webhook
 		webhook = trema_db.get_webhook_by_name(webhook_name, ctx.guild.id)
@@ -512,6 +515,7 @@ def _create_webhooks_cmds(trema_db):
     
 	@webhook.command(name="update",
 		description="Met à jour le canal lié au webhook")
+	@is_authorized(trema_db)
 	async def update_webhook(ctx,
 			webhook_name: Option(str, "Le nom du webhook à mettre à jour"),
 			new_channel_id: Option(str, "Le nouveau canal à associer au webhook")):
