@@ -17,6 +17,7 @@ Un robot logiciel pour les serveurs Discord des clubs étudiants de l'ÉTS
 Trëma est un bot Discord développé par le club CEDILLE de l'ÉTS. Le but de ce bot est d'aider à accueillir et à guider les nouveaux membres sur le serveur Discord, ainsi que de fournir des fonctionnalités utiles pour la gestion du serveur.
 
 ## Fonctionnalités
+### Discord bot
 __Commandes de Configuration (/config)__
 * /config aide: Fournit des informations sur les différentes commandes de configuration.
 
@@ -33,6 +34,12 @@ __Sous-commandes de Rappel (/config rappel)__
 
 * /config rappel delai [délai]: Définit le délai en minutes avant que le message de rappel soit envoyé. Rôle admin requis.
 
+__Commandes de Webhook (/webhook)__
+* /webhook create [channel_id] [webhook_name]: Crée un nouveau webhook pour le canal spécifié. Rôle admin requis.
+* /webhook list: Affiche une liste des webhooks existants pour le serveur. Rôle admin requis.
+* /webhook delete [webhook_name]: Supprime un webhook existant. Rôle admin requis.
+* /webhook update [webhook_name] [new_channel_id]: Met à jour le canal associé au webhook. Rôle admin requis.
+
 __Commandes d'Information__
 * /ping: Affiche la latence du bot et d'autres statistiques.
 
@@ -41,18 +48,40 @@ __Commandes d'Information__
 __Commandes annonce__
 * /annonce: Permet de planifier une annonce. 
 
-### Événements
+#### Événements
 * on_guild_join: Enregistre le serveur dans la base de données lorsqu'il rejoint un nouveau serveur.
 
 * on_member_join: Envoie un message d'accueil personnalisé dans le canal d'accueil configuré et envoie également des rappels aux membres qui n'ont pas encore choisi de rôle.
 
 Les placeholders comme {member}, {username}, {server}, {&role}, {#channel}, {everyone}, {here} etc. peuvent être utilisés pour personnaliser les messages.
 
-### Comment l'utiliser ?
+#### Comment l'utiliser ?
 Pour commencer à utiliser le bot, [invitez-le](https://discord.com/api/oauth2/authorize?client_id=1042263080794603630&permissions=28582739967217&scope=bot) sur votre serveur et utilisez la commande /config aide pour obtenir de l'aide sur la configuration.
 
-#### Besoin d'aide ?
+##### Besoin d'aide ?
 Si vous avez des questions ou des problèmes avec le bot, n'hésitez pas à contacter le club CEDILLE à partir de [discord](https://discord.gg/ywvNV4Se) pour un support technique.
+
+
+### API Endpoints
+__Webhooks__
+* POST /webhooks/<uuid>: Cet endpoint est utilisé pour gérer les webhooks entrants.
+Lorsqu'une requête POST est effectuée sur cet endpoint avec un uuid valide, il traite le contenu intégré pour créer un message Discord Embed et l'envoie au canal Discord correspondant. Le payload JSON entrant doit inclure un tableau embeds contenant les informations d'intégration, telles que le titre, la description, la couleur, et un pied de page facultatif.
+
+Exemple de Payload :
+```
+{
+  "embeds": [
+    {
+      "title": "Your Title Here",
+      "description": "Your Description Here",
+      "color": "16745728",
+      "footer": {
+        "text": "Footer Text"
+      }
+    }
+  ]
+}
+```
 
 ## Développement local
 ### Lancement de Trëma
@@ -63,6 +92,8 @@ Définissez la variable d'environnement suivante :
 - MONGO_PASSWORD : mot de passe de la db
 - MONGO_HOST : nom d'hôte de la db
 - MONGO_PORT : Port pour la db
+- API_ADDRESS : Addresse ip de l'api
+- API_PORT : port utilisé par l'api
 
 Installer les dépendances en ligne de commande.
 

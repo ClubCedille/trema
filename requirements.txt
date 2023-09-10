@@ -3,3 +3,4 @@ pymongo==4.1.1
 pytest~=7.2.0
 discord~=2.1.0
 pytz~=2023.3
+quart~=0.18.4
