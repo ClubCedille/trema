@@ -438,7 +438,7 @@ def _create_management_cmds(trema_bot, trema_db):
 				annonce.set_thumbnail(url=image_url)
 			await ctx.author.send(embed=annonce)
 		else:
-			formatted_title = f"**{title}**\n"
+			formatted_title = make_mention(title, mention_dict)
 			formatted_body = f"{body_with_mentions}"
 			annonce = f"{formatted_title}\n{formatted_body}"
 			await ctx.author.send(annonce)
