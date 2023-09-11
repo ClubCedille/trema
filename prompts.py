@@ -16,6 +16,7 @@ from text_format import\
 import asyncio
 from datetime import datetime
 import pytz
+import os
 
 mtl_tz = pytz.timezone('America/Toronto') 
 
@@ -66,6 +67,10 @@ async def prompt_user_with_confirmation(ctx, description, title=None):
         return None
     
 async def prompt_for_image(ctx):
+
+    if not os.path.exists("./temp"):
+        os.makedirs("./temp")
+
     embed = Embed(
         title="Image",
         description="Veuillez envoyer l'image que vous voulez ajouter au message.",
