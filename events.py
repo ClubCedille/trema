@@ -1,3 +1,4 @@
+import asyncio
 from discord_util import\
 	member_roles_are_default,\
 	send_delayed_dm
@@ -35,9 +36,9 @@ def create_event_reactions(trema_bot, trema_db):
 			reminder_msg = make_mention(reminder_msg, generate_mention_dict(guild, member))
 			reminder_delay = trema_db.get_server_reminder_delay(guild_id)
 			msg_condition = lambda: member_roles_are_default(member)
-			reminder_task = loop.create_task(send_delayed_dm(
+			reminder_task = asyncio.create_task(send_delayed_dm(
 				member, reminder_msg, reminder_delay, msg_condition))
-			await loop.wait([reminder_task])
+			await asyncio.wait([reminder_task])
 
 	@trema_bot.event
 	async def on_member_remove(member):

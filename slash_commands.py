@@ -238,8 +238,7 @@ def _create_config_cmds(trema_db):
 			new_value = user_message.content
 			trema_db.set_server_welcome_msg(guild_id, new_value)
 			embed_title = "Message d'accueil mis à jour"
-			response_embed = _make_config_confirm_embed(
-				embed_title, new_value, prev_value)
+			response_embed = _make_config_confirm_embed(embed_title, new_value, prev_value)
 			await dm_channel.send(embed=response_embed)
 
 	@config.command(name="msgdepart",
@@ -271,26 +270,52 @@ def _create_config_reminder_cmds(trema_db, config_group):
 		description="Configurez le rappel aux membres qui n'ont pas choisi de rôles.")
 
 	@rappel.command(name="message",
-		description=f"{_MEMBER_MENTIONABLE} Changez le message de rappel aux membres sans rôles.")
+		description=f"Changez le message de rappel aux membres sans rôles.")
 	@is_authorized(trema_db)
-	async def config_reminder_msg(ctx,
-			message: Option(str, f"{_MEMBER_MENTIONABLE} Message de rappel aux membres sans rôles.")):
+	async def config_reminder_msg(ctx):
 		
 		guild_id = ctx.guild_id
-		embed_title = _make_cmd_full_name(ctx.command) + _SPACE + message
+		embed_title = _make_cmd_full_name(ctx.command) + _SPACE
 		prev_value = trema_db.get_server_reminder_msg(guild_id)
 
-		if message == _REQUEST_VALUE:
-			response_embed =\
-				_make_config_display_embed(embed_title, prev_value)
-
+		await ctx.respond("Veuillez vérifier vos messages privés pour des instructions supplémentaires.", ephemeral=True)
+		
+		user = ctx.author
+		dm_channel = user.dm_channel
+		if dm_channel is None:
+			dm_channel = await user.create_dm()
+			
+		embed = Embed(
+			title="Configuration du message de rappel aux membres qui n'ont pas choisi de rôles",
+			description=f"Le message de rappel actuel est: `{prev_value}`\n\n"
+						"Pour personnaliser ce message, vous pouvez utiliser les mentions suivantes:\n"
+						"- `{member}` pour mentionner le nouveau membre\n"
+						"- `{username}` pour mentionner un username\n"
+						"- `{server}` pour le nom du serveur\n"
+						"- `{&role}` pour mentionner un rôle par son nom\n"
+						"- `{#channel}` pour un lien vers un canal\n"
+						"- `{everyone}` pour `@everyone`\n"
+						"- `{here}` pour `@here`\n\n"
+						"Veuillez entrer le nouveau message d'accueil.",
+			color=Color.blue()
+		)
+		
+		await dm_channel.send(embed=embed)
+		
+		# Wait for user input in DM
+		def check(m):
+			return m.author.id == user.id and m.channel.id == dm_channel.id
+		
+		try:
+			user_message = await ctx.bot.wait_for('message', timeout=120.0, check=check)
+		except asyncio.TimeoutError:
+			await dm_channel.send("Temps écoulé. Opération annulée.")
 		else:
-			trema_db.set_server_reminder_msg(guild_id, message)
-			confirmed_msg = trema_db.get_server_reminder_msg(guild_id)
-			response_embed = _make_config_confirm_embed(
-				embed_title, confirmed_msg, prev_value)
+			new_value = user_message.content
+			trema_db.set_server_reminder_msg(guild_id, new_value)
+			response_embed = _make_config_confirm_embed(embed_title, new_value, prev_value)
+			await dm_channel.send(embed=response_embed)
 
-		await ctx.respond(embed=response_embed, ephemeral=True)
 
 	@rappel.command(name="delai",
 		description="Changer le délai d'envoi du rappel (minutes) aux membres sans rôles.")
