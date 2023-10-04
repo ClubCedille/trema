@@ -140,9 +140,9 @@ def _create_config_cmds(trema_db):
 			+ "disponibles et leur description.\n\n"\
 			+ "Donnez l'argument **$** à une commande **/config** pour voir la valeur actuelle "\
 			+ "d'un paramètre.\n\n"\
-			+ "Certains paramètres sont des messages affichés arpès un évènement concernant "\
+			+ "Certains paramètres sont des messages affichés après un évènement concernant "\
 			+ "un membre particulier. Pour mentionner ce membre, écrivez **@-** dans ces messages. "\
-			+ "Le signe **[@-]** au début d'une description inidque que cette action est possible."
+			+ "Le signe **[@-]** au début d'une description indique que cette action est possible."
 		help_embed = Embed(
 			title=embed_title,
 			description=instructions,
