@@ -8,6 +8,7 @@
 <p align="center">
   <img src="https://img.shields.io/badge/version-1.0.2-blue.svg" alt="Version Badge"/>
   <img src="https://img.shields.io/badge/license-MIT-green.svg" alt="License Badge"/>
+  <img src="https://github.com/ClubCedille/trema/actions/workflows/ci.yml/badge.svg" alt="Workflow Badge"/>
 </p>
 
 ---
