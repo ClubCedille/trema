@@ -13,7 +13,9 @@ def _get_welcome_chan(guild, trema_db):
 	welcome_chan = guild.get_channel(welcome_chan_id)
 	return welcome_chan
 
+import logging
 
+logger = logging.getLogger(__name__)
 
 def create_event_reactions(trema_bot, trema_db):
 	@trema_bot.event
@@ -55,4 +57,4 @@ def create_event_reactions(trema_bot, trema_db):
 
 	@trema_bot.event
 	async def on_ready():
-		print(f"{trema_bot.user} fonctionne.")
+		logger.info('{0.user} fonctionne.'.format(trema_bot))
