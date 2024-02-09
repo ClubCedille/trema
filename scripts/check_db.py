@@ -9,7 +9,7 @@ mongo_pass = os.environ.get('MONGO_PASSWORD')
 
 
 try:
-    client = pymongo.MongoClient(f'mongodb://{mongo_user}:{mongo_pass}@{mongo_host}:{mongo_port}/')
+    client = pymongo.MongoClient(f'mongodb://{mongo_user}:{mongo_pass}@{mongo_host}:{mongo_port}')
 
     client.server_info()
     print(f"Connection à MongoDB réussie sur {mongo_host}:{mongo_port}")
