@@ -4,6 +4,7 @@ from pymongo import MongoClient
 from random import randint
 from schemas import get_schema
 from sys import maxsize
+from bson import ObjectId
 import os
 
 class AlreadyExistError(Exception):
@@ -304,6 +305,46 @@ class _TremaDatabase:
 			if webhook["webhookName"] == webhookName:
 				return webhook
 		return None
+	def create_request(self, guild_id, request_type, request_data):
+		"""
+		Registers a new request in the database with support for multiple request types.
+
+		Args:
+			guild_id (int): The ID of the guild making the request.
+			request_type (str): The type of the request (e.g., 'grav', 'postgresql').
+			request_data (dict): The specific data for the request. This should include any type-specific
+									fields such as 'domaine', 'nom_club', 'contexte' for a GRAV request.
+
+		"""
+		requests_collection = self._get_collection("requests")
+		
+		request_document = {
+			"_id": self.generate_rand_id("requests"),
+			"guild_id": guild_id,
+			"request_type": request_type,
+			"request_data": request_data,  # Now, 'request_data' is nested
+			"created_at": datetime.now(),
+			"status": "submitted"
+    	}
+		
+		requests_collection.insert_one(request_document)
+
+	def list_requests(self, guild_id):
+		requests_collection = self._get_collection("requests")
+		requests = requests_collection.find(
+			{"guild_id": guild_id},
+			sort=[("created_at", -1)]
+		)
+		return list(requests)
+		
+	def delete_request(self, guild_id, request_id):
+		requests_collection = self._get_collection("requests")
+		try:
+			oid = ObjectId(request_id)
+		except:
+			return False  
+		result = requests_collection.delete_one({"guild_id": guild_id, "_id": oid})
+		return result.deleted_count > 0
 
 mongo_user = os.getenv('MONGO_USER')
 mongo_password = os.getenv('MONGO_PASSWORD')

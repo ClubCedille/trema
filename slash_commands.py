@@ -1,4 +1,5 @@
 import asyncio
+import requests
 from datetime import datetime
 from discord import\
 	Color,\
@@ -7,7 +8,7 @@ from discord import\
 	SlashCommandGroup,\
 	utils,\
 	File
-
+import os
 from discord.ext import commands
 
 from prompts import\
@@ -61,14 +62,69 @@ def is_authorized(trema_db):
 		return isAllowed
 	return commands.check(predicate)
 
-def create_slash_cmds(trema_bot, trema_db, start_time):
+def dispatch_github_workflow(domaine, nom_club, contexte, github_token):
+	# https://docs.github.com/en/rest/actions/workflows?apiVersion=2022-11-28#create-a-workflow-dispatch-event
+	url = "https://api.github.com/repos/clubCedille/plateforme-Cedille/actions/workflows/request-grav.yml/dispatches"
+	headers = {
+		"Accept": "application/vnd.github+json",
+		"Authorization": f"token {github_token}",
+		"X-GitHub-Api-Version": "2022-11-28"
+	}
+	data = {
+		"ref": "master",
+		"inputs": {
+			"domaine": domaine,
+			"nom_club": nom_club,
+			"contexte": contexte
+		}
+	}
+
+	response = requests.post(url, headers=headers, json=data)
+
+	if response.status_code == 204:
+		return True, "Workflow successfully triggered."
+	else:
+		return False, f"Failed to trigger workflow. Status code: {response.status_code}"
+
+import requests
+
+def post_to_calidum(sender_username, request_service, request_details):
+	api_key = os.getenv('CALIDUM_API_KEY')
+	url = "https://calidum-rotae.omni.cedille.club"
+	service_details = {
+		"Sender": {
+			"FirstName": sender_username,
+			"LastName": "", 
+			"Email": ""
+		},
+		"RequestService": request_service,
+		"RequestDetails": request_details
+	}
+
+	headers = {
+		'Content-Type': 'application/json',
+		'X-API-KEY': api_key
+	}
+
+	response = requests.post(url, headers=headers, json=service_details)
+
+	if response.status_code == 200:
+		print("Posted to Calidum")
+		return True
+	else:
+		print("Failed to post to Calidum")
+		return False
+
+def create_slash_cmds(trema_bot, trema_db, start_time, github_token):
 	config = _create_config_cmds(trema_db)
 	_create_config_reminder_cmds(trema_db, config)
 	_create_information_cmds(trema_bot, start_time)
 	_create_management_cmds(trema_bot, trema_db)
 	webhook = _create_webhooks_cmds(trema_db)
+	request = _create_requests_cmds(trema_db, github_token)
 	trema_bot.add_application_command(config)
 	trema_bot.add_application_command(webhook)
+	trema_bot.add_application_command(request)
 
 def _create_config_cmds(trema_db):
 	config = SlashCommandGroup(name="config",
@@ -554,3 +610,65 @@ def _create_webhooks_cmds(trema_db):
 			await ctx.respond(f"Le canal '{new_channel_id}' n'existe pas.", ephemeral=True)
 
 	return webhook
+
+def _create_requests_cmds(trema_db, github_token):
+	request = SlashCommandGroup(name="request",
+		description="Groupe de commandes pour gérer les requêtes.")
+
+	@request.command(name="grav",
+		description="Créer une requête pour un site web GRAV")
+	@is_authorized(trema_db)
+	async def request_grav_workflow(ctx,
+			domaine: Option(str, "Domaine à utiliser (eg cedille.etsmtl.ca)"),
+			nom_club: Option(str, "Nom du club. Pas de caractères spéciaux ou d'espaces outre - et _"),
+			contexte: Option(str, "Contexte du site (eg. site web, blog, etc.)")):
+		
+		await ctx.defer(ephemeral=True)
+
+		success, message = dispatch_github_workflow(domaine, nom_club, contexte, github_token)
+
+		if success:
+			request_data = {
+				"domaine": domaine,
+				"nom_club": nom_club,
+				"contexte": contexte
+			}
+
+			trema_db.create_request(ctx.guild_id, "grav", request_data)
+
+			post_to_calidum(ctx.author.name, "Requête création site web Grav", f"Domaine: {domaine}, Nom du club: {nom_club}, Contexte: {contexte}")
+
+			embed = Embed(title="Requête de service", description=f"La requête pour '{nom_club}' a été initiée avec succès.\n{message}", color=Color.green())
+		else:
+			embed = Embed(title="Erreur de requête", description=f"Échec de l'initiation de la requête pour '{nom_club}'.\n{message}", color=Color.red())
+
+		await ctx.followup.send(embed=embed, ephemeral=True)
+
+	@request.command(name="list",
+					description="Liste des requêtes pour ce serveur")
+	@is_authorized(trema_db)
+	async def list_requests(ctx):
+		requests = trema_db.list_requests(ctx.guild_id)
+		if not requests:
+			await ctx.respond("Aucune requête n'a été faite pour ce serveur.", ephemeral=True)
+		else:
+			embed = Embed(title="Liste des requêtes", description="Voici la liste des requêtes dans ce serveur:", color=Color.blue())
+			for request in requests:
+				# Formatting request_data for display
+				data_display = ', '.join([f"{key}: {value}" for key, value in request['request_data'].items()])
+				request_description = f"Type: {request['request_type']}, Status: {request['status']}, Data: {data_display}"
+				embed.add_field(name=f"Requête avec id:{request['_id']}", value=request_description, inline=False)
+			
+			await ctx.respond(embed=embed, ephemeral=True)
+
+	@request.command(name="delete",
+					description="Supprimer une requête")
+	@is_authorized(trema_db)
+	async def delete_request(ctx, request_id: Option(str, "Id de la requête à supprimer")):
+		success = trema_db.delete_request(ctx.guild_id, request_id)
+		if not success:
+			await ctx.respond(f"Requête avec l'id {request_id} non trouvé.", ephemeral=True)
+		else:
+			await ctx.respond(f"Requête avec l'id {request_id} supprimé.", ephemeral=True)
+
+	return request

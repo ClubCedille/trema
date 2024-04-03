@@ -35,6 +35,8 @@ if not api_port:
     logger.error('ERROR: API port var is missing: API_PORT')
     sys.exit(-1)
 
+github_token = os.getenv('GITHUB_TOKEN')
+
 app = Quart(__name__)
 
 intents = discord.Intents.default()
@@ -44,7 +46,7 @@ trema = discord.Bot(intents=intents)
 database = get_trema_database()
 
 create_event_reactions(trema, database)
-create_slash_cmds(trema, database, start_time)
+create_slash_cmds(trema, database, start_time, github_token)
 create_routes(app, database, trema)
 
 async def main():
