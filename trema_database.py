@@ -89,8 +89,11 @@ class _TremaDatabase:
 	def _get_document_attr(self, collection, doc_id, attr_key):
 		collection = self._ensure_col_is_obj(collection)
 		document = collection.find_one({"_id": doc_id})
+		if document is None:
+			return None
 		attr_value = document.get(attr_key)
 		return attr_value
+
 
 	def get_leave_msg(self, welcome_id):
 		leave_msg = self._get_welcome_attr(welcome_id, "leave_msg")
@@ -267,8 +270,10 @@ class _TremaDatabase:
 	def get_all_webhooks(self, guild_id):
 		server_collection = self._get_collection("server")
 		server_doc = server_collection.find_one({"_id": guild_id})
+		if server_doc is None:
+			return []
 		return server_doc.get("webhooks", [])
-	
+
 	def delete_webhook(self, webhookName, guild_id):
 		server_collection = self._get_collection("server")
 		server_collection.update_one(
@@ -345,6 +350,37 @@ class _TremaDatabase:
 			return False  
 		result = requests_collection.delete_one({"guild_id": guild_id, "_id": oid})
 		return result.deleted_count > 0
+	
+	def get_all_server_configs(self, server_id):
+		def safe_get(attr_value, default="Non configuré"):
+			return default if attr_value is None else attr_value
+
+		configs = {
+			"Nom du serveur": safe_get(self._get_server_attr(server_id, "name")),
+			"Rôle d'administrateur": safe_get(self._get_server_attr(server_id, "admin_role")),
+			"Date d'adhésion": safe_get(self._get_server_attr(server_id, "joined_at")),
+			"ID du canal d'annonces": safe_get(self._get_server_attr(server_id, "announce_chan_id")),
+			"ID du canal de bienvenue": safe_get(self.get_server_welcome_chan_id(server_id)),
+			"Message de bienvenue": safe_get(self.get_server_welcome_msg(server_id)),
+			"Message de départ": safe_get(self.get_server_leave_msg(server_id)),
+			"Message de rappel": safe_get(self.get_server_reminder_msg(server_id)),
+			"Délai de rappel (minutes)": safe_get(self.get_server_reminder_delay(server_id), default=0) // 60,
+			"Webhooks": safe_get(self.get_all_webhooks(server_id), default=[]),
+		}
+
+		formatted_configs = []
+		for key, value in configs.items():
+			if isinstance(value, list):
+				if value:
+					formatted_value = "\n".join([f"- {item}" for item in value])
+				else:
+					formatted_value = "Aucun"
+			else:
+				formatted_value = value
+
+			formatted_configs.append(f"**{key}**: {formatted_value}")
+
+		return "\n\n".join(formatted_configs)
 
 mongo_user = os.getenv('MONGO_USER')
 mongo_password = os.getenv('MONGO_PASSWORD')

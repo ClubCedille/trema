@@ -48,12 +48,10 @@ def create_event_reactions(trema_bot, trema_db):
 		guild_id = guild.id
 		leave_msg = trema_db.get_server_leave_msg(guild_id)
 		if leave_msg is not None:
+			mention_dict = generate_mention_dict(guild, member)
+			leave_msg = make_mention(leave_msg, mention_dict)
 			welcome_chan = _get_welcome_chan(guild, trema_db)
-			leave_msg = make_mention(leave_msg, member)
 			await welcome_chan.send(leave_msg)
-
-
-
 
 	@trema_bot.event
 	async def on_ready():

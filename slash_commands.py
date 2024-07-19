@@ -118,7 +118,7 @@ def post_to_calidum(sender_username, request_service, request_details):
 def create_slash_cmds(trema_bot, trema_db, start_time, github_token):
 	config = _create_config_cmds(trema_db)
 	_create_config_reminder_cmds(trema_db, config)
-	_create_information_cmds(trema_bot, start_time)
+	_create_information_cmds(trema_bot, start_time, trema_db)
 	_create_management_cmds(trema_bot, trema_db)
 	webhook = _create_webhooks_cmds(trema_db)
 	request = _create_requests_cmds(trema_db, github_token)
@@ -198,7 +198,7 @@ def _create_config_cmds(trema_db):
 			+ "d'un paramètre.\n\n"\
 			+ "Certains paramètres sont des messages affichés après un évènement concernant "\
 			+ "un membre particulier. Pour mentionner ce membre, écrivez **@-** dans ces messages. "\
-			+ "Le signe **[@-]** au début d'une description indique que cette action est possible."
+			+ "Le signe **[@-]** au début d'une description indique que cette action est possible." 
 		help_embed = Embed(
 			title=embed_title,
 			description=instructions,
@@ -406,7 +406,7 @@ def _create_config_reminder_cmds(trema_db, config_group):
 
 		await ctx.respond(embed=response_embed, ephemeral=True)
 
-def _create_information_cmds(trema_bot, start_time):	
+def _create_information_cmds(trema_bot, start_time, trema_db):	
 	@trema_bot.command(name="ping", description="Répond avec pong")
 	async def ping(ctx):
 		latency = round(trema_bot.latency * 1000) 
@@ -439,6 +439,21 @@ def _create_information_cmds(trema_bot, start_time):
 		help_embed.set_thumbnail(url="https://cedille.etsmtl.ca/images/cedille-logo-orange.png")
 			
 		await ctx.respond(embed=help_embed)
+
+
+	@trema_bot.command(name="show_server_config", description="Affiche toutes les configurations du serveur")
+	@is_authorized(trema_db)
+	async def show_server_config(ctx):
+		guild_id = ctx.guild_id
+		config_values = trema_db.get_all_server_configs(guild_id)
+
+		response_embed = Embed(
+			title="Configurations du Serveur",
+			description=config_values,
+			color=Color.green()
+		)
+
+		await ctx.respond(embed=response_embed, ephemeral=True)
 
 def _create_management_cmds(trema_bot, trema_db):
 

@@ -19,9 +19,11 @@ def make_mention(text, mention_dict):
     Returns:
         str: the given text with mentions replaced.
     """
-    for placeholder, mention in mention_dict.items():
-            text = text.replace(placeholder, mention)
+    for placeholder in list(mention_dict.keys()):
+        if placeholder in text:
+            text = text.replace(placeholder, mention_dict.get(placeholder, "{mention non trouvé}"))
     return text
+
 
 def generate_mention_dict(guild, newMember = None):
     mention_dict = {
