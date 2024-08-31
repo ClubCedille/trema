@@ -7,7 +7,9 @@ from discord import\
 	Option,\
 	SlashCommandGroup,\
 	utils,\
-	File
+	File,\
+	SelectOption
+from discord.ui import Select, View
 import os
 from discord.ext import commands
 
@@ -119,12 +121,15 @@ def create_slash_cmds(trema_bot, trema_db, start_time, github_token):
 	config = _create_config_cmds(trema_db)
 	_create_config_reminder_cmds(trema_db, config)
 	_create_information_cmds(trema_bot, start_time, trema_db)
-	_create_management_cmds(trema_bot, trema_db)
+	_create_server_management_cmds(trema_bot, trema_db)
 	webhook = _create_webhooks_cmds(trema_db)
 	request = _create_requests_cmds(trema_db, github_token)
+	member 	= _create_member_cmds(trema_db)
+	
 	trema_bot.add_application_command(config)
 	trema_bot.add_application_command(webhook)
 	trema_bot.add_application_command(request)
+	trema_bot.add_application_command(member)
 
 def _create_config_cmds(trema_db):
 	config = SlashCommandGroup(name="config",
@@ -185,6 +190,29 @@ def _create_config_cmds(trema_db):
 
 		await ctx.respond(embed=response_embed, ephemeral=True)
 	
+	@config.command(name="memberrole",
+		description="Configurer le rôle des membres approuvés.")
+	@is_authorized(trema_db)
+	async def config_member_role(ctx, 
+			role_id: Option(str, "L'ID du rôle des membres approuvés.")):
+		
+		try:
+			role_id = int(role_id)
+		except ValueError:
+			await ctx.respond("Rôle invalide. Veuillez vérifier l'ID du rôle.", ephemeral=True)
+			return
+		
+		server_id = ctx.guild.id
+		role = ctx.guild.get_role(role_id)
+
+		if not role:
+			await ctx.respond("Rôle invalide. Veuillez vérifier l'ID du rôle.", ephemeral=True)
+			return
+
+		trema_db.set_server_member_role(server_id, role_id)
+
+		await ctx.respond(f"Le rôle des membres approuvés a été configuré avec succès : {role.name} (ID: {role_id}).", ephemeral=True)
+
 	@config.command(name="aide",
 		description="Informations sur les commandes /config")
 	async def aide(ctx):
@@ -455,7 +483,7 @@ def _create_information_cmds(trema_bot, start_time, trema_db):
 
 		await ctx.respond(embed=response_embed, ephemeral=True)
 
-def _create_management_cmds(trema_bot, trema_db):
+def _create_server_management_cmds(trema_bot, trema_db):
 
 	@trema_bot.command(name="annonce", description="Informations sur Trëma")
 	@is_authorized(trema_db)
@@ -668,8 +696,8 @@ def _create_requests_cmds(trema_db, github_token):
 			await ctx.respond("Aucune requête n'a été faite pour ce serveur.", ephemeral=True)
 		else:
 			embed = Embed(title="Liste des requêtes", description="Voici la liste des requêtes dans ce serveur:", color=Color.blue())
+			
 			for request in requests:
-				# Formatting request_data for display
 				data_display = ', '.join([f"{key}: {value}" for key, value in request['request_data'].items()])
 				request_description = f"Type: {request['request_type']}, Status: {request['status']}, Data: {data_display}"
 				embed.add_field(name=f"Requête avec id:{request['_id']}", value=request_description, inline=False)
@@ -687,3 +715,200 @@ def _create_requests_cmds(trema_db, github_token):
 			await ctx.respond(f"Requête avec l'id {request_id} supprimé.", ephemeral=True)
 
 	return request
+
+def _create_member_cmds(trema_db):
+	member = SlashCommandGroup(name="member", description="Gérer les membres du serveur.")
+
+	@member.command(name="request", description="Demander à devenir membre du serveur.")
+	async def request_member(ctx):
+		requester_id = ctx.author.id
+		server_id = ctx.guild.id
+		username = ctx.author.name
+		
+		member_data = {
+			"user_id": requester_id,
+			"username": username,
+			"status": "pending",
+			"request_time": str(datetime.now())
+		}
+		trema_db.add_member(server_id, member_data)
+
+		post_to_calidum(username, "Membre du serveur", f"Demande d'ajout comme membre pour {username} avec statut 'pending'.")
+
+		embed = Embed(
+			title="Demande de membre envoyée",
+			description=f"Votre demande pour devenir membre est en attente d'approbation.",
+			color=Color.green()
+		)
+		await ctx.respond(embed=embed, ephemeral=True)
+
+	@member.command(name="list", description="Lister les membres du serveur.")
+	@is_authorized(trema_db)
+	async def list_members(ctx, status: Option(str, "Statut des membres à afficher", choices=["pending", "approved", "rejected"], required=False) = None):
+		server_id = ctx.guild.id
+		members = trema_db.get_members(server_id, status=status)
+
+		if not members:
+			await ctx.respond("Aucun membre trouvé pour ce serveur.", ephemeral=True)
+		else:
+			embed = Embed(title="Liste des membres", description="Voici la liste des membres du serveur:", color=Color.blue())
+			for idx, member in enumerate(members, start=1):
+				embed.add_field(
+					name=f"#{idx}: {member['username']}",
+					value=f"ID: {member['_id']}, Statut: {member['status']}, Requête: {member.get('request_time', 'N/A')}",
+					inline=False
+				)
+			await ctx.respond(embed=embed, ephemeral=True)
+
+	@member.command(name="update", description="Mettre à jour le statut d'un membre.")
+	@is_authorized(trema_db)
+	async def update_member(ctx):
+		server_id = ctx.guild.id
+		members = trema_db.get_members(server_id)
+
+		if not members:
+			await ctx.respond("Aucun membre trouvé pour ce serveur.", ephemeral=True)
+			return
+
+		member_options = [
+			SelectOption(label=member['username'], description=f"ID: {member['_id']}, Statut: {member['status']}", value=str(member['_id']))
+			for member in members
+		]
+		
+		member_select = Select(
+			placeholder="Sélectionnez un membre à mettre à jour",
+			options=member_options,
+			min_values=1,
+			max_values=1
+		)
+
+		async def member_select_callback(interaction):
+			member_id = int(member_select.values[0])
+			selected_member = next(member for member in members if member["_id"] == member_id)
+
+			status_select = Select(
+				placeholder="Sélectionnez le nouveau statut",
+				options=[
+					SelectOption(label="Pending", value="pending"),
+					SelectOption(label="Approved", value="approved"),
+					SelectOption(label="Rejected", value="rejected")
+				],
+				min_values=1,
+				max_values=1
+			)
+
+			async def status_select_callback(interaction):
+				new_status = status_select.values[0]
+				trema_db.update_member(member_id, {"status": new_status})
+
+				embed = Embed(title="Statut du membre mis à jour", description=f"Le statut du membre avec ID {member_id} est maintenant '{new_status}'.", color=Color.green())
+				await interaction.response.send_message(embed=embed, ephemeral=True)
+
+				if new_status == "approved":
+					member_user = ctx.guild.get_member(int(selected_member["user_id"]))
+					if member_user:
+						try:
+							await member_user.send(f"Félicitations! Vous avez été approuvé en tant que membre du serveur et vous pouvez maintenant accéder aux canaux réservés aux membres.")
+						except:
+							await ctx.respond("Impossible d'envoyer un message privé au membre approuvé.", ephemeral=True)
+
+						try:
+							member_role_id = trema_db.get_server_member_role(server_id)
+							if isinstance(member_role_id, str):
+								member_role_id = int(member_role_id)
+							member_role = ctx.guild.get_role(member_role_id)
+							if member_role:
+								await member_user.add_roles(member_role)
+							else:
+								await interaction.response.send_message("Impossible de trouver le rôle des membres configuré.", ephemeral=True)
+						except Exception as e:
+							print(f"Exception: {e}")
+							await interaction.response.send_message("Impossible d'ajouter le rôle des membres.", ephemeral=True)
+
+			status_select.callback = status_select_callback
+			status_view = View()
+			status_view.add_item(status_select)
+
+			await interaction.response.send_message(f"Vous avez sélectionné {selected_member['username']}. Entrez le nouveau statut:", view=status_view, ephemeral=True)
+
+		member_select.callback = member_select_callback
+		member_view = View()
+		member_view.add_item(member_select)
+
+		await ctx.respond("Sélectionnez le membre à mettre à jour:", view=member_view, ephemeral=True)
+
+	@member.command(name="delete", description="Supprimer un membre.")
+	@is_authorized(trema_db)
+	async def delete_member(ctx):
+		server_id = ctx.guild.id
+		members = trema_db.get_members(server_id)
+
+		if not members:
+			await ctx.respond("Aucun membre trouvé pour ce serveur.", ephemeral=True)
+			return
+
+		member_options = [
+			SelectOption(label=member['username'], description=f"ID: {member['_id']}, Statut: {member['status']}", value=str(member['_id']))
+			for member in members
+		]
+		
+		member_select = Select(
+			placeholder="Sélectionnez un membre à supprimer",
+			options=member_options,
+			min_values=1,
+			max_values=1
+		)
+
+		async def member_select_callback(interaction):
+			member_id = int(member_select.values[0])
+			selected_member = next(member for member in members if member["_id"] == member_id)
+
+			trema_db.delete_member(member_id)
+
+			embed = Embed(title="Membre supprimé", description=f"Le membre avec l'ID {member_id} ({selected_member['username']}) a été supprimé.", color=Color.red())
+			await interaction.response.send_message(embed=embed, ephemeral=True)
+
+		member_select.callback = member_select_callback
+		member_view = View()
+		member_view.add_item(member_select)
+
+		await ctx.respond("Sélectionnez le membre à supprimer:", view=member_view, ephemeral=True)
+
+	@member.command(name="add", description="Ajouter un membre manuellement.")
+	@is_authorized(trema_db)
+	async def add_member(ctx, user_id: Option(str, "ID de l'utilisateur à ajouter"), status: Option(str, "Statut du membre", choices=["pending", "approved", "rejected"])):
+		server_id = ctx.guild.id
+		user_id_int = int(user_id)
+		member_user = ctx.guild.get_member(user_id_int)
+		username = member_user.name if member_user else "Unknown"
+
+		member_data = {
+			"user_id": user_id_int,
+			"username": username,
+			"status": status,
+			"request_time": str(datetime.now())
+		}
+		
+		trema_db.add_member(server_id, member_data)
+
+		embed = Embed(title="Membre ajouté", description=f"Le membre {username} a été ajouté avec le statut '{status}'.", color=Color.green())
+		await ctx.respond(embed=embed, ephemeral=True)
+
+		if status == "approved" and member_user:
+			try:
+				member_role_id = trema_db.get_server_member_role(server_id)
+				if isinstance(member_role_id, str):
+					member_role_id = int(member_role_id)
+
+				member_role = ctx.guild.get_role(member_role_id)
+				
+				if member_role:
+					await member_user.add_roles(member_role)
+					await ctx.respond(f"Le rôle '{member_role.name}' a été attribué à {username}.", ephemeral=True)
+				else:
+					await ctx.respond("Impossible de trouver le rôle des membres configuré.", ephemeral=True)
+			except Exception as e:
+				print(f"Exception: {e}")
+				await ctx.respond("Impossible d'ajouter le rôle des membres.", ephemeral=True)
+
+	return member

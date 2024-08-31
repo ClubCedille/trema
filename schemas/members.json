@@ -1,0 +1,12 @@
+{
+    "type": "object",
+    "properties": {
+        "_id": {"type": "integer"},
+        "server_id": {"type": "integer"},
+        "user_id": {"type": "integer"},
+        "username": {"type": "string"},
+        "status": {"type": "string", "enum": ["pending", "approved", "rejected"]},
+        "request_time": {"type": "string", "format": "date-time"}
+    },
+    "required": ["_id", "server_id", "user_id", "username", "status", "request_time"]
+}

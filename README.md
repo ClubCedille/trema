@@ -29,6 +29,9 @@ __Commandes de Configuration (/config)__
 * /config msgdepart [message]: Permet de configurer le message envoyé lorsque quelqu'un quitte le serveur. Rôle admin requis.
 
 * /config roleAdmin [role_id]: Permet de configurer le rôle admin dans le serveur. Ce rôle permet d'exécuter les commande de configuration, rappel et la commande annonce. Rôle de propriétaire de serveur requis.
+
+* /config roleMembre [role_id]: Permet de configurer le rôle membre dans le serveur. Ce rôle est attribué aux membres lorsqu'ils obtiennent un statut 'approved' par les admins.
+
 * 
 __Sous-commandes de Rappel (/config rappel)__
 * /config rappel message [message]: Configure le message de rappel envoyé aux membres qui n'ont pas encore choisi de rôle. Rôle admin requis. 
@@ -47,7 +50,19 @@ __Commandes d'Information__
 * /info: Fournit des informations générales sur le bot Trëma.
 
 __Commandes annonce__
-* /annonce: Permet de planifier une annonce. 
+* /annonce: Permet de planifier une annonce.
+
+__Commandes de gestion de membres (/member)__
+
+* /member list: Affiche la liste des membres du serveur.
+
+* /member request: Permet à un nouveau visiteur du serveur de demander un rôle de membre. Ceci envoie une notification aux admins pour approuver ou refuser la demande. Un status 'pending' est attribué aux membres en attente.
+
+* /member update: Permet aux admins de mettre à jour le statut des membres. Les membres peuvent être approuvés ou refusés. Rôle admin requis. Une notification est envoyée aux membres approuvés et le rôle membre est attribué.
+
+* /member delete: Permet aux admins de supprimer un membre du serveur. Rôle admin requis.
+
+* /member add [user_id] [status]: Permet aux admins d'ajouter un membre au serveur. Rôle admin requis.
 
 #### Événements
 * on_guild_join: Enregistre le serveur dans la base de données lorsqu'il rejoint un nouveau serveur.

@@ -8,6 +8,20 @@
 			"format": "date-time"
 		},
 		"announce_chan_id": {"type": ["number", "null"]},
-		"welcome_id": {"type": "number"}
+		"welcome_id": {"type": "number"},
+		"admin_role": {"type": ["string", "null"]},
+		"member_role": {"type": ["string", "null"]},
+		"webhooks": {
+			"type": "array",
+			"items": {
+				"type": "object",
+				"properties": {
+					"webhookName": {"type": "string"},
+					"channelID": {"type": "string"},
+					"unique_url": {"type": "string"}
+				},
+				"required": ["webhookName", "channelID", "unique_url"]
+			}
+		}
 	}
 }

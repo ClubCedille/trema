@@ -41,6 +41,7 @@ app = Quart(__name__)
 
 intents = discord.Intents.default()
 intents.members = True
+intents.message_content = True
 trema = discord.Bot(intents=intents)
 
 database = get_trema_database()

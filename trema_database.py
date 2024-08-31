@@ -199,10 +199,11 @@ class _TremaDatabase:
 			"announce_chan_id": None,
 			"welcome_id": welcome_id,
 			"admin_role": None,
+			"member_role": None,
 			"webhooks": webhooks 
 		}
 		self.add_document("server", server_doc)
-
+	
 		return False
 
 	def _set_document_attr(self, collection, doc_id, attr_key, attr_val):
@@ -254,6 +255,12 @@ class _TremaDatabase:
 
 	def set_server_admin_role(self, server_id, admin_role):
 		self._set_document_attr("server", server_id, "admin_role", admin_role)
+
+	def get_server_member_role(self, server_id):
+		return self._get_server_attr(server_id, "member_role")
+
+	def set_server_member_role(self, server_id, member_role):
+		self._set_document_attr("server", server_id, "member_role", member_role)
 
 	def create_webhook(self, webhookName, channelID, unique_url, guild_id):
 		server_collection = self._get_collection("server")
@@ -381,6 +388,36 @@ class _TremaDatabase:
 			formatted_configs.append(f"**{key}**: {formatted_value}")
 
 		return "\n\n".join(formatted_configs)
+	
+	def add_member(self, server_id, member):
+		member["_id"] = self.generate_rand_id("members")
+		member["server_id"] = server_id
+		if "status" not in member:
+			member["status"] = "pending"
+		
+		self.add_document("members", member)
+
+	def get_members(self, server_id, status=None):
+		members_collection = self._get_collection("members")
+		query = {"server_id": server_id}
+		if status:
+			query["status"] = status
+		members = members_collection.find(query)
+		return list(members)
+
+	def update_member(self, member_id, update_fields):
+		members_collection = self._get_collection("members")
+		query = {"_id": member_id}
+		update = {"$set": update_fields}
+		members_collection.update_one(query, update)
+
+	def delete_member(self, member_id):
+		members_collection = self._get_collection("members")
+		members_collection.delete_one({"_id": member_id})
+
+	def get_member(self, member_id):
+		members_collection = self._get_collection("members")
+		return members_collection.find_one({"_id": member_id})
 
 mongo_user = os.getenv('MONGO_USER')
 mongo_password = os.getenv('MONGO_PASSWORD')
