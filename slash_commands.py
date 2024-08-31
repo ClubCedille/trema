@@ -213,6 +213,27 @@ def _create_config_cmds(trema_db):
 
 		await ctx.respond(f"Le rôle des membres approuvés a été configuré avec succès : {role.name} (ID: {role_id}).", ephemeral=True)
 
+	@config.command(name="enablecalidum",
+		description="Activer ou désactiver les notifications Calidum.")
+	@is_authorized(trema_db)
+	async def config_calidum(ctx,
+			enable: Option(bool, "Activer ou désactiver les notifications Calidum")):
+		
+		server_id = ctx.guild.id
+		prev_value = trema_db.get_server_calidum_enabled(server_id)
+		embed_title = _make_cmd_full_name(ctx.command) + _SPACE + str(enable)
+
+		if enable == _REQUEST_VALUE:
+			response_embed = _make_config_display_embed(embed_title, prev_value)
+
+		else:
+			trema_db.set_server_calidum_enabled(server_id, enable)
+			confirmed_value = trema_db.get_server_calidum_enabled(server_id)
+			response_embed = _make_config_confirm_embed(
+				embed_title, confirmed_value, prev_value)
+
+		await ctx.respond(embed=response_embed, ephemeral=True)
+
 	@config.command(name="aide",
 		description="Informations sur les commandes /config")
 	async def aide(ctx):
@@ -679,7 +700,9 @@ def _create_requests_cmds(trema_db, github_token):
 
 			trema_db.create_request(ctx.guild_id, "grav", request_data)
 
-			post_to_calidum(ctx.author.name, "Requête création site web Grav", f"Domaine: {domaine}, Nom du club: {nom_club}, Contexte: {contexte}")
+			calidum_enabled = trema_db.get_server_calidum_enabled(ctx.guild_id)
+			if calidum_enabled:
+				post_to_calidum(ctx.author.name, "Requête création site web Grav", f"Domaine: {domaine}, Nom du club: {nom_club}, Contexte: {contexte}")
 
 			embed = Embed(title="Requête de service", description=f"La requête pour '{nom_club}' a été initiée avec succès.\n{message}", color=Color.green())
 		else:
@@ -733,7 +756,9 @@ def _create_member_cmds(trema_db):
 		}
 		trema_db.add_member(server_id, member_data)
 
-		post_to_calidum(username, "Membre du serveur", f"Demande d'ajout comme membre pour {username} avec statut 'pending'.")
+		calidum_enabled = trema_db.get_server_calidum_enabled(ctx.guild_id)
+		if calidum_enabled:
+			post_to_calidum(username, "Membre du serveur", f"Demande d'ajout comme membre pour {username} avec statut 'pending'.")
 
 		embed = Embed(
 			title="Demande de membre envoyée",

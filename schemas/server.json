@@ -11,6 +11,7 @@
 		"welcome_id": {"type": "number"},
 		"admin_role": {"type": ["string", "null"]},
 		"member_role": {"type": ["string", "null"]},
+		"calidum_enabled": {"type": "boolean"},
 		"webhooks": {
 			"type": "array",
 			"items": {

@@ -185,7 +185,8 @@ class _TremaDatabase:
 			"reminder_delay": 15 * 60,
 			"reminder_msg": None,
 			"leave_msg": None,
-			"welcome_chan_id": server.system_channel.id
+			"welcome_chan_id": server.system_channel.id,
+			"calidum_enabled": False
 		}
 		self.add_document("welcome", welcome_doc)
 
@@ -261,6 +262,12 @@ class _TremaDatabase:
 
 	def set_server_member_role(self, server_id, member_role):
 		self._set_document_attr("server", server_id, "member_role", member_role)
+
+	def set_server_enable_calidum(self, server_id, enable):
+		self._set_document_attr("server", server_id, "calidum_enabled", enable)
+
+	def get_server_enable_calidum(self, server_id):
+		return self._get_server_attr(server_id, "calidum_enabled")
 
 	def create_webhook(self, webhookName, channelID, unique_url, guild_id):
 		server_collection = self._get_collection("server")
