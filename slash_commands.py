@@ -744,6 +744,8 @@ def _create_member_cmds(trema_db):
 
 	@member.command(name="request", description="Demander à devenir membre du serveur.")
 	async def request_member(ctx):
+		await ctx.defer(ephemeral=True)
+
 		requester_id = ctx.author.id
 		server_id = ctx.guild.id
 		username = ctx.author.name
@@ -788,6 +790,7 @@ def _create_member_cmds(trema_db):
 	@member.command(name="update", description="Mettre à jour le statut d'un membre.")
 	@is_authorized(trema_db)
 	async def update_member(ctx):
+		await ctx.defer(ephemeral=True)
 		server_id = ctx.guild.id
 		members = trema_db.get_members(server_id)
 
@@ -865,6 +868,8 @@ def _create_member_cmds(trema_db):
 	@member.command(name="delete", description="Supprimer un membre.")
 	@is_authorized(trema_db)
 	async def delete_member(ctx):
+		await ctx.defer(ephemeral=True)
+
 		server_id = ctx.guild.id
 		members = trema_db.get_members(server_id)
 
@@ -902,6 +907,8 @@ def _create_member_cmds(trema_db):
 	@member.command(name="add", description="Ajouter un membre manuellement.")
 	@is_authorized(trema_db)
 	async def add_member(ctx, user_id: Option(str, "ID de l'utilisateur à ajouter"), status: Option(str, "Statut du membre", choices=["pending", "approved", "rejected"])):
+		await ctx.defer(ephemeral=True)
+
 		server_id = ctx.guild.id
 		user_id_int = int(user_id)
 		member_user = ctx.guild.get_member(user_id_int)
