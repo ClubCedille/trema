@@ -372,6 +372,7 @@ class _TremaDatabase:
 		configs = {
 			"Nom du serveur": safe_get(self._get_server_attr(server_id, "name")),
 			"Rôle d'administrateur": safe_get(self._get_server_attr(server_id, "admin_role")),
+			"Rôle de membre": safe_get(self._get_server_attr(server_id, "member_role")),
 			"Date d'adhésion": safe_get(self._get_server_attr(server_id, "joined_at")),
 			"ID du canal d'annonces": safe_get(self._get_server_attr(server_id, "announce_chan_id")),
 			"ID du canal de bienvenue": safe_get(self.get_server_welcome_chan_id(server_id)),
@@ -380,6 +381,7 @@ class _TremaDatabase:
 			"Message de rappel": safe_get(self.get_server_reminder_msg(server_id)),
 			"Délai de rappel (minutes)": safe_get(self.get_server_reminder_delay(server_id), default=0) // 60,
 			"Webhooks": safe_get(self.get_all_webhooks(server_id), default=[]),
+			"Calidum notifications enabled": safe_get(self.get_server_calidum_enabled(server_id), default=False)
 		}
 
 		formatted_configs = []
