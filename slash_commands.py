@@ -122,7 +122,7 @@ def create_slash_cmds(trema_bot, trema_db, start_time, github_token):
 	_create_config_reminder_cmds(trema_db, config)
 	_create_information_cmds(trema_bot, start_time, trema_db)
 	_create_server_management_cmds(trema_bot, trema_db)
-	_create_ctf_cmds(trema_bot)
+	_create_odyssee_cmds(trema_bot)
 	webhook = _create_webhooks_cmds(trema_db)
 	request = _create_requests_cmds(trema_db, github_token)
 	member 	= _create_member_cmds(trema_db)
