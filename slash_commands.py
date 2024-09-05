@@ -136,7 +136,7 @@ def _create_odyssee_cmds(trema_bot):
 	@trema_bot.command(name="odyssee", description="Groupe de commandes pour l'événement Odyssée des clubs.")
 	async def odyssee(ctx):
 		embed = Embed(
-			title="🎉 Félicitation 🎉"
+			title="🎉 Félicitation 🎉",
 			description="Vous avez réussi à invoquer l'événement Odyssée des clubs. La récompense est un /secret bien gardé.",
 			color=Color.green()
 		)
@@ -145,7 +145,7 @@ def _create_odyssee_cmds(trema_bot):
 	@trema_bot.command(name="secret", description="Révéler le secret de l'Odyssée des clubs.")
 	async def secret(ctx):
 		embed = Embed(
-			title="🎉 Secret de l'Odyssée des clubs 🎉"
+			title="🎉 Secret de l'Odyssée des clubs 🎉",
 			description="Le secret est : **Le club CEDILLE est le meilleur club de l'ÉTS!**",
 			color=Color.green()
 		)
