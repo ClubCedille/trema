@@ -1,21 +1,19 @@
 import asyncio
-from discord_util import\
+from cogs.utils.discord import\
 	member_roles_are_default,\
 	send_delayed_dm
 
-from text_format import\
+from cogs.utils.text_format import\
 	make_mention,\
 	generate_mention_dict
+
+from logger import logger
 
 def _get_welcome_chan(guild, trema_db):
 	guild_id = guild.id
 	welcome_chan_id = trema_db.get_server_welcome_chan_id(guild_id)
 	welcome_chan = guild.get_channel(welcome_chan_id)
 	return welcome_chan
-
-import logging
-
-logger = logging.getLogger(__name__)
 
 def create_event_reactions(trema_bot, trema_db):
 	@trema_bot.event

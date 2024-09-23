@@ -1,4 +1,4 @@
-name: Docker
+name: Docker build and push to GHCR
 
 on:
   push:

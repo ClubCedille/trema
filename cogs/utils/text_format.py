@@ -4,6 +4,8 @@ from discord import\
     Embed
 
 _SLASH = "/"
+_MEMBER_MENTIONABLE = "[@-]"
+_REQUEST_VALUE = "$"
 _SPACE = " "
 
 def make_mention(text, mention_dict):

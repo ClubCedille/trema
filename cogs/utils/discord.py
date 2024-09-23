@@ -105,3 +105,13 @@ async def send_delayed_dm(user, message, delay, condition=None, message_type='te
 			os.remove(filepath)
 		else:
 			await user.send(message)
+
+def find_role_in_guild(guild, role_name):
+	"""
+	Given a guild and a role name, this function returns the role object with
+	the specified name. The search is case-insensitive.
+	"""
+	for role in guild.roles:
+		if role_name.lower() in role.name.lower():
+			return role
+	return None

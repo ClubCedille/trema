@@ -2,7 +2,7 @@ from datetime import datetime
 from jsonschema import validate
 from pymongo import MongoClient
 from random import randint
-from schemas import get_schema
+from db.schemas.schemas import get_schema
 from sys import maxsize
 from bson import ObjectId
 import os
@@ -107,6 +107,10 @@ class _TremaDatabase:
 		reminder_msg = self._get_welcome_attr(welcome_id, "reminder_msg")
 		return reminder_msg
 
+
+	def get_member_join_msg(self, welcome_id):
+		return self._get_welcome_attr(welcome_id, "member_join_msg")
+
 	def _get_server_attr(self, server_id, attr_key):
 		attr_value = self._get_document_attr("server", server_id, attr_key)
 		return attr_value
@@ -148,6 +152,11 @@ class _TremaDatabase:
 		welcome_msg = self.get_welcome_msg(welcome_id)
 		return welcome_msg
 
+	def get_server_member_join_msg(self, server_id):
+		welcome_id = self._get_server_welcome_id(server_id)
+		member_join_msg = self.get_member_join_msg(welcome_id)
+		return member_join_msg
+
 	def _get_welcome_attr(self, welcome_id, attr_key):
 		attr_value = self._get_document_attr("welcome", welcome_id, attr_key)
 		return attr_value
@@ -186,12 +195,9 @@ class _TremaDatabase:
 			"reminder_msg": None,
 			"leave_msg": None,
 			"welcome_chan_id": server.system_channel.id,
-			"calidum_enabled": False
+			"member_join_msg": "🎉Bienvenue!🎉",
 		}
 		self.add_document("welcome", welcome_doc)
-
-		# Initialize an empty list for webhooks
-		webhooks = []
 
 		server_doc = {
 			"_id": server.id,
@@ -201,7 +207,9 @@ class _TremaDatabase:
 			"welcome_id": welcome_id,
 			"admin_role": None,
 			"member_role": None,
-			"webhooks": webhooks 
+			"webhooks": [],
+			"server_roles": [],
+			"calidum_enabled": False
 		}
 		self.add_document("server", server_doc)
 	
@@ -242,6 +250,10 @@ class _TremaDatabase:
 		welcome_id = self._get_server_welcome_id(server_id)
 		self.set_welcome_msg(welcome_id, welcome_msg)
 
+	def set_server_member_join_msg(self, server_id, member_join_msg):
+		welcome_id = self._get_server_welcome_id(server_id)
+		self.set_member_join_msg(welcome_id, member_join_msg)
+
 	def _set_welcome_attr(self, welcome_id, attr_key, attr_val):
 		self._set_document_attr("welcome", welcome_id, attr_key, attr_val)
 
@@ -250,6 +262,9 @@ class _TremaDatabase:
 
 	def set_welcome_msg(self, welcome_id, welcome_msg):
 		self._set_welcome_attr(welcome_id, "welcome_msg", welcome_msg)
+
+	def set_member_join_msg(self, welcome_id, member_join_msg):
+		self._set_welcome_attr(welcome_id, "member_join_msg", member_join_msg)
 
 	def get_server_admin_role(self, server_id):
 		return self._get_server_attr(server_id, "admin_role")
@@ -332,7 +347,7 @@ class _TremaDatabase:
 			guild_id (int): The ID of the guild making the request.
 			request_type (str): The type of the request (e.g., 'grav', 'postgresql').
 			request_data (dict): The specific data for the request. This should include any type-specific
-									fields such as 'domaine', 'nom_club', 'contexte' for a GRAV request.
+			fields such as 'domaine', 'nom_club', 'contexte' for a GRAV request.
 
 		"""
 		requests_collection = self._get_collection("requests")
@@ -373,12 +388,14 @@ class _TremaDatabase:
 			"Nom du serveur": safe_get(self._get_server_attr(server_id, "name")),
 			"Rôle d'administrateur": safe_get(self._get_server_attr(server_id, "admin_role")),
 			"Rôle de membre": safe_get(self._get_server_attr(server_id, "member_role")),
+			"Rôles du serveur": safe_get(self._get_server_attr(server_id, "server_roles"), default=[]),
 			"Date d'adhésion": safe_get(self._get_server_attr(server_id, "joined_at")),
 			"ID du canal d'annonces": safe_get(self._get_server_attr(server_id, "announce_chan_id")),
 			"ID du canal de bienvenue": safe_get(self.get_server_welcome_chan_id(server_id)),
 			"Message de bienvenue": safe_get(self.get_server_welcome_msg(server_id)),
 			"Message de départ": safe_get(self.get_server_leave_msg(server_id)),
 			"Message de rappel": safe_get(self.get_server_reminder_msg(server_id)),
+			"Message pour requête de rejoindre": safe_get(self.get_server_member_join_msg(server_id)),
 			"Délai de rappel (minutes)": safe_get(self.get_server_reminder_delay(server_id), default=0) // 60,
 			"Webhooks": safe_get(self.get_all_webhooks(server_id), default=[]),
 			"Calidum notifications enabled": safe_get(self.get_server_calidum_enabled(server_id), default=False)
@@ -388,7 +405,7 @@ class _TremaDatabase:
 		for key, value in configs.items():
 			if isinstance(value, list):
 				if value:
-					formatted_value = "\n".join([f"- {item}" for item in value])
+					formatted_value = "".join([f"\n- {item}" for item in value])
 				else:
 					formatted_value = "Aucun"
 			else:
@@ -427,6 +444,20 @@ class _TremaDatabase:
 	def get_member(self, member_id):
 		members_collection = self._get_collection("members")
 		return members_collection.find_one({"_id": member_id})
+	
+	def set_server_roles(self, server_id, role_names):
+		server_collection = self._get_collection("server")
+		server_collection.update_one(
+			{"_id": server_id},
+			{"$set": {"server_roles": role_names}}
+		)
+
+	def get_server_roles(self, server_id):
+		server_collection = self._get_collection("server")
+		server_doc = server_collection.find_one({"_id": server_id})
+		if server_doc is None:
+			return []
+		return server_doc.get("server_roles", [])
 
 mongo_user = os.getenv('MONGO_USER')
 mongo_password = os.getenv('MONGO_PASSWORD')

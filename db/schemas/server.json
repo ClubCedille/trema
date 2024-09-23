@@ -23,6 +23,17 @@
 				},
 				"required": ["webhookName", "channelID", "unique_url"]
 			}
+		},
+		"server_roles": {
+			"type": "array",
+			"items": {
+				"type": "object",
+				"properties": {
+					"role_id": {"type": "number"},
+					"role_name": {"type": "string"}
+				},
+				"required": ["role_id", "role_name"]
+			}
 		}
 	}
 }

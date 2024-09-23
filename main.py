@@ -8,15 +8,12 @@ import sys
 from datetime import datetime
 from quart import Quart
 import asyncio
-from events import create_event_reactions
-from slash_commands import create_slash_cmds
-from trema_database import get_trema_database
+from cogs.events import create_event_reactions
+from cogs import create_slash_cmds
+from db.database import get_trema_database
 from routes import create_routes
-import logging
-
-# Set up logging
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
+from logger import logger
+from prometheus_client import start_http_server, Counter, Summary
 
 start_time = datetime.now()
 
@@ -50,12 +47,13 @@ create_event_reactions(trema, database)
 create_slash_cmds(trema, database, start_time, github_token)
 create_routes(app, database, trema)
 
+start_http_server(8000)
+
 async def main():
     loop = asyncio.get_event_loop()
 
     logger.info("Starting the bot and API")
     
-    # Start the bot and the API
     bot_coro = loop.create_task(trema.start(bot_token))
     api_coro = loop.create_task(app.run_task(host=api_address, port=api_port))
 
