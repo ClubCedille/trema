@@ -11,4 +11,3 @@ urllib3<1.27,>=1.26.6
 requests==2.31.0
 pytz~=2023.3
 prometheus_client~=0.13.1
-bson==0.5.10
