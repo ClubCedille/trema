@@ -39,7 +39,7 @@ jobs:
 
       - name: Run test suite
         run: |
-          python -m pytest -v
+          pytest
 
   build-push-ghcr:
     needs: test
