@@ -239,7 +239,7 @@ exit
 
 ### Lancement des tests
 
-Les tests sont dépendants de la base de données MongoDB. Pour les lancer, vous 
+Les tests sont dépendants de la base de données MongoDB. Pour les lancer, vous
 devez avoir une instance de MongoDB en cours d'exécution. Un docker-compose est
 fourni pour lancer une instance locale de MongoDB.
 
@@ -266,4 +266,50 @@ Pour lancer un seul test d'un fichier, lancez la commande suivante.
 
 ```bash
 pytest -v ./tests/[nom du fichier].py::[nom de la fonction]
+```
+
+## Metrics
+
+### Prometheus
+
+Des métriques sont exposées via l'endpoint `/metrics`. Pour les visualiser,
+lancez le docker-compose fourni et visiter localhost:3000 pour l'instance de
+Graphana.Un exemple de configuration est fourni dans le dossier dans monitoring
+avec Un dashboard et un fichier de configuration pour prometheus.
+
+Pour exposer les métriques a Prometheus dans un cluster Kubernetes, vous pouvez
+créer un ServiceMonitor pour le déploiement de Trëma.
+
+```yaml
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: trema-monitor
+  namespace: trema
+  labels:
+    app: trema
+spec:
+  selector:
+    matchLabels:
+      app: trema
+  endpoints:
+    - port: metrics
+      path: /metrics
+      interval: 15s
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: trema
+  namespace: trema
+  labels:
+    app: trema
+spec:
+  ports:
+    - name: metrics
+      port: 8000
+      targetPort: 8000
+    ... # other ports
+  selector:
+    app: trema
 ```
