@@ -4,6 +4,7 @@ from cogs.utils.dispatch import post_to_calidum
 from cogs.prompts import prompt_user_with_select, prompt_user
 from cogs.utils.discord import find_role_in_guild
 from logger import logger
+from cogs.utils.text_format import make_mention, generate_mention_dict
 
 def _create_member_requests_cmds(trema_db, request):
     @request.command(name="join", description="Obtenir accès au reste du serveur.")
@@ -21,7 +22,9 @@ def _create_member_requests_cmds(trema_db, request):
 
         server_member_join_msg = trema_db.get_server_member_join_msg(server_id)
 
-        role_name = await prompt_user_with_select(ctx, server_member_join_msg, roles)
+        message = make_mention(server_member_join_msg, generate_mention_dict(ctx.guild, ctx.author))
+
+        role_name = await prompt_user_with_select(ctx, message, roles)
         
         if not role_name:
             return
