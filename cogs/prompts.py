@@ -159,14 +159,14 @@ async def prompt_user_with_date(ctx, description, title=None):
             await ctx.author.send('Temps écoulé. Opération annulée.')
             return None, None
 
-async def prompt_user_with_select(ctx, description, role_options):
+async def prompt_user_with_select(ctx, description, options, use_dm=False):
     embed = Embed(
         title="Sélection de rôle",
         description=description,
         color=Color.blue()
     )
 
-    options = [SelectOption(label=role, value=role.lower()) for role in role_options]
+    options = [SelectOption(label=option, value=option) for option in options]
 
     select = Select(
         placeholder="Choisissez votre rôle",
@@ -184,11 +184,33 @@ async def prompt_user_with_select(ctx, description, role_options):
     view = View()
     view.add_item(select)
 
-    await ctx.respond(embed=embed, view=view, ephemeral=True)
+    if use_dm:
+        dm_channel = ctx.author.dm_channel
+        if dm_channel is None:
+            dm_channel = await ctx.author.create_dm()
 
-    try:
-        interaction = await ctx.bot.wait_for("interaction", check=lambda i: i.user.id == ctx.author.id, timeout=120)
-        return select.values[0]
-    except asyncio.TimeoutError:
-        await ctx.author.send('Temps écoulé. Opération annulée.')
-        return None
+        await dm_channel.send(embed=embed, view=view)
+
+        try:
+            interaction = await ctx.bot.wait_for(
+                "interaction",
+                check=lambda i: i.user.id == ctx.author.id and i.channel.id == dm_channel.id,
+                timeout=120
+            )
+            return select.values[0]
+        except asyncio.TimeoutError:
+            await ctx.author.send('Temps écoulé. Opération annulée.')
+            return None
+    else:
+        await ctx.respond(embed=embed, view=view, ephemeral=True)
+
+        try:
+            interaction = await ctx.bot.wait_for(
+                "interaction",
+                check=lambda i: i.user.id == ctx.author.id,
+                timeout=120
+            )
+            return select.values[0]
+        except asyncio.TimeoutError:
+            await ctx.author.send('Temps écoulé. Opération annulée.')
+            return None

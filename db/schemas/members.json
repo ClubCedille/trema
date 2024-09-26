@@ -6,7 +6,9 @@
         "user_id": {"type": "integer"},
         "username": {"type": "string"},
         "status": {"type": "string", "enum": ["pending", "approved", "rejected"]},
-        "request_time": {"type": "string", "format": "date-time"}
+        "request_time": {"type": "string", "format": "date-time"},
+        "github_email": {"type": "string"},
+        "github_username": {"type": "string"}
     },
     "required": ["_id", "server_id", "user_id", "username", "status", "request_time"]
 }

@@ -8,10 +8,12 @@ from discord import\
 	File,\
 	SelectOption
 from discord.ui import Select, View
-
 from cogs.admin import is_authorized
+from cogs.prompts import prompt_user_with_select, prompt_user_with_confirmation, prompt_user
+from logger import logger
+from cogs.utils.dispatch import dispatch_add_member_to_gh_org_gw
 
-def _create_member_cmds(trema_db):
+def _create_member_cmds(trema_db, github_token):
 	member = SlashCommandGroup(name="member", description="Gérer les membres du serveur.")
 
 	@member.command(name="list", description="Lister les membres du serveur.")
@@ -27,7 +29,7 @@ def _create_member_cmds(trema_db):
 			for idx, member in enumerate(members, start=1):
 				embed.add_field(
 					name=f"#{idx}: {member['username']}",
-					value=f"ID: {member['_id']}, Statut: {member['status']}, Requête: {member.get('request_time', 'N/A')}",
+					value=f"ID: {member['_id']}\nStatut: {member['status']}\nRequête: {member.get('request_time', 'N/A')}\nGitHub: {member.get('github_username', 'N/A')}",
 					inline=False
 				)
 			await ctx.respond(embed=embed, ephemeral=True)
@@ -95,8 +97,14 @@ def _create_member_cmds(trema_db):
 							else:
 								await interaction.response.send_message("Impossible de trouver le rôle des membres configuré.", ephemeral=True)
 						except Exception as e:
-							print(f"Exception: {e}")
+							logger.error(f"Exception: {e}")
 							await interaction.response.send_message("Impossible d'ajouter le rôle des membres.", ephemeral=True)
+
+						try:
+							await add_member_to_gh_org_gw(ctx, selected_member, github_token)
+						except Exception as e:
+							logger.error(f"Exception: {e}")
+							await interaction.response.send_message("Impossible d'ajouter le membre à l'organisation GitHub.", ephemeral=True)
 
 			status_select.callback = status_select_callback
 			status_view = View()
@@ -185,7 +193,39 @@ def _create_member_cmds(trema_db):
 				else:
 					await ctx.respond("Impossible de trouver le rôle des membres configuré.", ephemeral=True)
 			except Exception as e:
-				print(f"Exception: {e}")
+				logger.error(f"Exception: {e}")
 				await ctx.respond("Impossible d'ajouter le rôle des membres.", ephemeral=True)
 
+			try:
+				selected_member = trema_db.get_member(server_id, user_id_int)
+				await add_member_to_gh_org_gw(ctx, selected_member, github_token)
+			except Exception as e:
+				logger.error(f"Exception: {e}")
+				await ctx.respond("Impossible d'ajouter le membre à l'organisation GitHub.", ephemeral=True)
+
 	return member
+
+
+async def add_member_to_gh_org_gw(ctx, member, github_token):
+	add_to_gh_org = await prompt_user_with_confirmation(ctx, f"Ajouter {member['username']} à l'organisation GitHub ?")
+
+	if add_to_gh_org:
+		github_username = member.get("github_username")
+		if not github_username:
+			github_username = await prompt_user(ctx, "Entrez le nom d'utilisateur GitHub du membre", "Nom d'utilisateur GitHub")
+			if not github_username:
+				return
+		github_email = member.get("github_email")
+		if not github_email:
+			github_email = await prompt_user(ctx, "Entrez l'adresse e-mail associée à GitHub du membre", "E-mail GitHub")
+			if not github_email:
+				return
+		team_sre = await prompt_user_with_select(ctx, "Ajouter dans l'équipe SRE ?", ["vrai", "faux"], True)
+		cluster_role = await prompt_user_with_select(ctx, "Choisir le rôle pour le cluster", ["None", "Reader", "Operator", "Admin"], True)
+
+		success, message = await dispatch_add_member_to_gh_org_gw(github_username, github_email, github_token, team_sre, cluster_role)
+
+		if success:
+			await ctx.author.send(f"Le membre {member['username']} a été ajouté à l'organisation GitHub avec succès.\n{message}")
+		else:
+			await ctx.author.send(f"Impossible d'ajouter le membre {member['username']} à l'organisation GitHub.\n{message}")

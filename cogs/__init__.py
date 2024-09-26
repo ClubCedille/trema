@@ -14,7 +14,7 @@ def create_slash_cmds(trema_bot, trema_db, start_time, github_token):
 	config = _create_config_cmds(trema_db)
 	webhook = _create_webhooks_cmds(trema_db)
 	request = _create_requests_cmds(trema_db, github_token)
-	member 	= _create_member_cmds(trema_db)
+	member 	= _create_member_cmds(trema_db, github_token)
 	
 	trema_bot.add_application_command(config)
 	trema_bot.add_application_command(webhook)

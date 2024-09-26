@@ -1,6 +1,6 @@
 from discord import Embed, Color, Option, SlashCommandGroup
 from cogs.admin import is_authorized
-from cogs.utils.dispatch import post_to_calidum, dispatch_github_workflow
+from cogs.utils.dispatch import post_to_calidum, dispatch_grav_gw
 def _create_grav_requests_cmds(trema_db, request, github_token):
     @request.command(name="grav",
         description="Créer une requête pour un site web GRAV")
@@ -12,7 +12,7 @@ def _create_grav_requests_cmds(trema_db, request, github_token):
         
         await ctx.defer(ephemeral=True)
 
-        success, message = dispatch_github_workflow(domaine, nom_club, contexte, github_token)
+        success, message = await dispatch_grav_gw(domaine, nom_club, contexte, github_token)
 
         if success:
             request_data = {
@@ -25,7 +25,7 @@ def _create_grav_requests_cmds(trema_db, request, github_token):
 
             calidum_enabled = trema_db.get_server_calidum_enabled(ctx.guild_id)
             if calidum_enabled:
-                post_to_calidum(ctx.author.name, "Requête création site web Grav", f"Domaine: {domaine}, Nom du club: {nom_club}, Contexte: {contexte}")
+                await post_to_calidum(ctx.author.name, "Requête création site web Grav", f"Domaine: {domaine}, Nom du club: {nom_club}, Contexte: {contexte}")
 
             embed = Embed(title="Requête de service", description=f"La requête pour '{nom_club}' a été initiée avec succès.\n{message}", color=Color.green())
         else:
