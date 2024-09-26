@@ -112,6 +112,6 @@ def find_role_in_guild(guild, role_name):
 	the specified name. The search is case-insensitive.
 	"""
 	for role in guild.roles:
-		if role_name.lower() in role.name.lower():
+		if role_name.lower() == role.name.lower():
 			return role
 	return None

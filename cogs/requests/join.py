@@ -61,7 +61,6 @@ def _create_member_requests_cmds(trema_db, request):
             if calidum_enabled:
                 await post_to_calidum(username, "Membre du serveur", f"Demande d'ajout comme membre pour {username} avec statut 'pending'.")
 
-            # Send confirmation message to the user
             embed = Embed(
                 title="Demande de membre envoyée",
                 description=f"Votre demande pour devenir membre est en attente d'approbation.",
