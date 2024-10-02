@@ -12,3 +12,4 @@ requests==2.31.0
 pytz~=2023.3
 prometheus_client~=0.13.1
 aiohttp~=3.10.5
+hypercorn~=0.17.3

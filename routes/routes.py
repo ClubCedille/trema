@@ -1,11 +1,9 @@
 from quart import request, jsonify
 from prometheus_client import Counter, Summary
 import traceback
-import logging
+from logger import logger
 import re
 from discord import Embed
-
-logger = logging.getLogger(__name__)
 
 REQUEST_COUNT = Counter('trema_http_requests_total', 'Total HTTP Requests')
 REQUEST_LATENCY = Summary('trema_http_request_latency_seconds', 'Latency of HTTP requests')
@@ -16,12 +14,11 @@ def create_routes(app, database, trema):
 
     @app.before_request
     @REQUEST_LATENCY.time()
-    async def before_request():
-        REQUEST_COUNT.inc() 
-        logger.info(f"Handling request: {request.path}")
+    def before_request():
+        REQUEST_COUNT.inc()
 
     @app.after_request
-    async def after_request(response):
+    def after_request(response):
         if response.status_code >= 400:
             ERROR_COUNT.inc()
         return response
@@ -34,6 +31,7 @@ def create_routes_webhooks(app, database, trema):
         try:
             channelID = database.get_channel_by_webhook(uuid)
             if channelID is None:
+                logger.error(f"Webhook called with UUID: {uuid} - Invalid UUID")
                 return jsonify({'error': 'Invalid webhook UUID'}), 400
 
             incoming_data = await request.json

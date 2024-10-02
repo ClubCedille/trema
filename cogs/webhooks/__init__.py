@@ -20,10 +20,9 @@ def _create_webhooks_cmds(trema_db):
 		guild_id = ctx.guild_id
 		unique_url = generate_unique_webhook_url()
 
-		# Save the unique URL and associated channel to your database
 		trema_db.create_webhook(webhook_name, channel_id, unique_url, guild_id)
 
-		embed=Embed(title="Webhook créé", description=f"Le webhook '{webhook_name}' a été créé avec succès.\n```webhook url endpoint : {unique_url}```", color=Color.blurple())
+		embed=Embed(title="Webhook créé", description=f"Le webhook '{webhook_name}' a été créé avec succès.\nwebhook uuid : ```{unique_url}```", color=Color.blurple())
 		await ctx.respond(embed=embed, ephemeral=True)
 
 	@webhook.command(name="list",
