@@ -8,15 +8,14 @@ import sys
 from datetime import datetime
 from quart import Quart
 import asyncio
-from events import create_event_reactions
-from slash_commands import create_slash_cmds
-from trema_database import get_trema_database
+import hypercorn.asyncio
+from hypercorn.config import Config
+from cogs.events import create_event_reactions
+from cogs import create_slash_cmds
+from db.database import get_trema_database
 from routes import create_routes
-import logging
-
-# Set up logging
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
+from logger import logger
+from prometheus_client import start_http_server
 
 start_time = datetime.now()
 
@@ -41,6 +40,7 @@ app = Quart(__name__)
 
 intents = discord.Intents.default()
 intents.members = True
+intents.message_content = True
 trema = discord.Bot(intents=intents)
 
 database = get_trema_database()
@@ -49,14 +49,19 @@ create_event_reactions(trema, database)
 create_slash_cmds(trema, database, start_time, github_token)
 create_routes(app, database, trema)
 
+start_http_server(8000)
+
+async def run_quart_app(app, host, port):
+    config = Config()
+    config.bind = [f"{host}:{port}"]
+    await hypercorn.asyncio.serve(app, config)
+
 async def main():
-    loop = asyncio.get_event_loop()
 
     logger.info("Starting the bot and API")
     
-    # Start the bot and the API
-    bot_coro = loop.create_task(trema.start(bot_token))
-    api_coro = loop.create_task(app.run_task(host=api_address, port=api_port))
+    bot_coro = asyncio.create_task(trema.start(bot_token))
+    api_coro = asyncio.create_task(run_quart_app(app, api_address, api_port))
 
     await asyncio.gather(bot_coro, api_coro)
 
@@ -64,7 +69,9 @@ if __name__ == '__main__':
     logger.info("Main application starting")
     loop = asyncio.get_event_loop()
     try:
-        loop.run_until_complete(main())
+        asyncio.ensure_future(main())
+
+        loop.run_forever()
     except Exception as e:
         logger.error(f"Unhandled exception in main application: {e}")
         raise

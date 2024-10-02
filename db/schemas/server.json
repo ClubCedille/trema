@@ -1,0 +1,39 @@
+{
+	"type": "object",
+	"properties": {
+		"_id": {"type": "number"},
+		"name": {"type": "string"},
+		"joined_at": {
+			"type": "string",
+			"format": "date-time"
+		},
+		"announce_chan_id": {"type": ["number", "null"]},
+		"welcome_id": {"type": "number"},
+		"admin_role": {"type": ["string", "null"]},
+		"member_role": {"type": ["string", "null"]},
+		"calidum_enabled": {"type": "boolean"},
+		"webhooks": {
+			"type": "array",
+			"items": {
+				"type": "object",
+				"properties": {
+					"webhookName": {"type": "string"},
+					"channelID": {"type": "string"},
+					"unique_url": {"type": "string"}
+				},
+				"required": ["webhookName", "channelID", "unique_url"]
+			}
+		},
+		"server_roles": {
+			"type": "array",
+			"items": {
+				"type": "object",
+				"properties": {
+					"role_id": {"type": "number"},
+					"role_name": {"type": "string"}
+				},
+				"required": ["role_id", "role_name"]
+			}
+		}
+	}
+}

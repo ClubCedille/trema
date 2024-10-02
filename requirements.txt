@@ -9,3 +9,6 @@ pytz~=2023.3
 quart~=0.18.4
 urllib3<1.27,>=1.26.6
 requests==2.32.0
+prometheus_client~=0.13.1
+aiohttp~=3.10.5
+hypercorn~=0.17.3

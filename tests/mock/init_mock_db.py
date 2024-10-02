@@ -1,7 +1,7 @@
 from bson import utc
 from datetime import datetime
 
-from trema_database import\
+from db.database import\
 	AlreadyExistError,\
 	InvalidParameterError,\
 	_TremaDatabase

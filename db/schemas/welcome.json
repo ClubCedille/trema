@@ -6,6 +6,7 @@
 		"reminder_delay": {"type": "number"},
 		"reminder_msg": {"type": ["string", "null"]},
 		"leave_msg": {"type": ["string", "null"]},
-		"welcome_chan_id": {"type": ["number", "null"]}
+		"welcome_chan_id": {"type": ["number", "null"]},
+		"member_join_msg": {"type": ["string", "null"]}
 	}
 }

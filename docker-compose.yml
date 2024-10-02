@@ -1,0 +1,58 @@
+services:
+  mongodb:
+    container_name: "db_mongo_dev"
+    image: mongo:latest
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: root
+    ports:
+      - 27017:27017
+    volumes:
+      - mongodb_data_container:/data/db
+    networks:
+      - app_network
+
+  trema:
+    container_name: trema
+    build: 
+      context: .
+    env_file:
+      - .env
+    networks:
+      - app_network
+    ports:
+      - 6000:6000
+
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: prometheus
+    volumes:
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml
+    ports:
+      - 9090:9090
+    networks:
+      - app_network
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: grafana
+    ports:
+      - 3000:3000
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+      - GF_DASHBOARDS_JSON_ENABLED=true
+      - GF_DASHBOARDS_PATH=/var/lib/grafana/dashboards
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./monitoring/grafana:/var/lib/grafana/dashboards
+    networks:
+      - app_network
+
+networks:
+  app_network:
+    driver: bridge
+
+volumes:
+  mongodb_data_container:
+  grafana_data:

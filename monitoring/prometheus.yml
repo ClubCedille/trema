@@ -1,0 +1,7 @@
+global:
+  scrape_interval: 15s
+
+scrape_configs:
+  - job_name: 'trema_bot'
+    static_configs:
+      - targets: ['trema:8000']

@@ -1,0 +1,20 @@
+How to test webhooks:
+Run the docker-compose file first.
+Then, create a webhook with the bot using the command /webhook create.
+Copy the webhook id.
+Then, do the following commands on your terminal :
+
+curl -X POST http://localhost:6000/webhooks/webhook-id\
+-H "Content-Type: application/json" \
+-d '{
+  "embeds": [
+    {
+      "title": "Your Title Here",
+      "description": "Your Description Here",
+      "color": "16745728",
+      "footer": {
+        "text": "Footer Text"
+      }
+    }
+  ]
+}'

@@ -1,0 +1,72 @@
+from datetime import datetime
+from discord import Embed, Color
+from cogs.utils.dispatch import post_to_calidum
+from cogs.prompts import prompt_user_with_select, prompt_user
+from cogs.utils.discord import find_role_in_guild
+from logger import logger
+from cogs.utils.text_format import make_mention, generate_mention_dict
+
+def _create_member_requests_cmds(trema_db, request):
+    @request.command(name="join", description="Obtenir accès au reste du serveur.")
+    async def request_server_access(ctx):
+        await ctx.defer(ephemeral=True)
+
+        requester_id = ctx.author.id
+        server_id = ctx.guild.id
+        username = ctx.author.name
+
+        roles = trema_db.get_server_roles(server_id)
+
+        if not roles:
+            logger.error(f"Server {server_id} does not have any roles.")
+
+        server_member_join_msg = trema_db.get_server_member_join_msg(server_id)
+
+        message = make_mention(server_member_join_msg, generate_mention_dict(ctx.guild, ctx.author))
+
+        role_name = await prompt_user_with_select(ctx, message, roles)
+        
+        if not role_name:
+            return
+
+        role = find_role_in_guild(ctx.guild, role_name)
+
+        if not role:
+            logger.error(f"Role {role_name} not found in guild {ctx.guild.id}.")
+            return
+        
+        member_role = trema_db.get_server_member_role(server_id)
+
+        if role.id == member_role:
+
+            await ctx.respond("Pour devenir membre, veuillez fournir votre nom d'utilisateur GitHub et votre adresse e-mail. Vérifier vos messages privés pour plus d'informations.", ephemeral=True)
+            github_username = await prompt_user(ctx, "Veuillez entrer votre nom d'utilisateur GitHub", "Nom d'utilisateur GitHub pour devenir membre")
+            if not github_username:
+                return
+            github_email = await prompt_user(ctx, "Veillez entrer votre adresse e-mail associée à GitHub", "Adresse e-mail GitHub pour devenir membre")
+            if not github_email:
+                return
+
+            member_data = {
+                "user_id": requester_id,
+                "username": username,
+                "status": "pending",
+                "request_time": str(datetime.now()),
+                "github_username": github_username,
+                "github_email": github_email
+            }
+            trema_db.add_member(server_id, member_data)
+
+            calidum_enabled = trema_db.get_server_calidum_enabled(ctx.guild.id)
+            if calidum_enabled:
+                await post_to_calidum(username, "Membre du serveur", f"Demande d'ajout comme membre pour {username} avec statut 'pending'.")
+
+            embed = Embed(
+                title="Demande de membre envoyée",
+                description=f"Votre demande pour devenir membre est en attente d'approbation.",
+                color=Color.green()
+            )
+            await ctx.author.send(embed=embed)
+        elif role:
+            await ctx.author.add_roles(role)
+            await ctx.author.send(f"Vous avez été assigné au rôle de {role_name.capitalize()}.")

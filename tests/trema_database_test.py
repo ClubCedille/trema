@@ -11,7 +11,7 @@ from sys import \
 
 path.append('../')
 
-from trema_database import \
+from db.database import \
     get_trema_database, \
     _TremaDatabase
 
