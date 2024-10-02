@@ -29,7 +29,7 @@ def _create_member_cmds(trema_db, github_token):
 			for idx, member in enumerate(members, start=1):
 				embed.add_field(
 					name=f"#{idx}: {member['username']}",
-					value=f"ID: {member['_id']}\nStatut: {member['status']}\nRequête: {member.get('request_time', 'N/A')}\nGitHub: {member.get('github_username', 'N/A')}",
+					value=f"ID: {member['_id']}\nStatut: {member['status']}\nRequête: {member.get('request_time', 'N/A')}\nGitHub: {member.get('github_username', 'N/A')}\nEmail: {member.get('github_email', 'N/A')}",
 					inline=False
 				)
 			await ctx.respond(embed=embed, ephemeral=True)
