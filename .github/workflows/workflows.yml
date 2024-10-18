@@ -47,5 +47,4 @@ jobs:
       ClubCedille/cedille-workflows/.github/workflows/build-push-ghcr.yaml@master
     with:
       container-name: ${{ github.event.repository.name }}
-      tag: ${{ github.sha }}
     secrets: inherit
