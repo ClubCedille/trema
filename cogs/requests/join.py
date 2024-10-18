@@ -1,7 +1,7 @@
 from datetime import datetime
 from discord import Embed, Color
 from cogs.utils.dispatch import post_to_calidum
-from cogs.prompts import prompt_user_with_select, prompt_user
+from cogs.prompts import prompt_user_with_select, prompt_user, prompt_user_with_confirmation
 from cogs.utils.discord import find_role_in_guild
 from logger import logger
 from cogs.utils.text_format import make_mention, generate_mention_dict
@@ -39,7 +39,15 @@ def _create_member_requests_cmds(trema_db, request):
 
         if role.id == member_role:
 
-            await ctx.respond("Pour devenir membre, veuillez fournir votre nom d'utilisateur GitHub et votre adresse e-mail. Vérifier vos messages privés pour plus d'informations.", ephemeral=True)
+            await ctx.respond("Afin de compléter votre demande d'adhésion, veuillez vérifier vos messages privés.", ephemeral=True)
+
+            user_has_gh_account = await prompt_user_with_confirmation(ctx, "Avez-vous un compte GitHub ?")
+
+            if not user_has_gh_account:
+                 # Give user link to our wiki track to learn git and github and then return to the command to try again
+                await ctx.author.send("Vous pouvez apprendre à utiliser Git et GitHub en suivant ce lien : https://wiki.omni.cedille.club/onboarding/tracks/git/ \n\nUne fois que vous avez un compte GitHub, veuillez réessayer la commande `/request join`.")
+                return
+
             github_username = await prompt_user(ctx, "Veuillez entrer votre nom d'utilisateur GitHub", "Nom d'utilisateur GitHub pour devenir membre")
             if not github_username:
                 return
