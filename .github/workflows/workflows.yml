@@ -49,5 +49,4 @@ jobs:
     uses: ClubCedille/cedille-workflows/.github/workflows/build-push-ghcr.yaml@master
     with:
       container-name: ${{ github.event.repository.name }}
-      push-latest: ${{ github.event_name == 'push' && github.ref == 'refs/heads/master' }}
     secrets: inherit
