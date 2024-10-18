@@ -4,6 +4,9 @@ on:
   push:
     branches:
       - master
+  pull_request:
+    branches:
+      - master
 
 env:
   MONGO_USER: "root"
@@ -43,8 +46,8 @@ jobs:
 
   build-push-ghcr:
     needs: test
-    uses:
-      ClubCedille/cedille-workflows/.github/workflows/build-push-ghcr.yaml@master
+    uses: ClubCedille/cedille-workflows/.github/workflows/build-push-ghcr.yaml@master
     with:
       container-name: ${{ github.event.repository.name }}
+      push-latest: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
     secrets: inherit
