@@ -8,23 +8,33 @@ _MEMBER_MENTIONABLE = "[@-]"
 _REQUEST_VALUE = "$"
 _SPACE = " "
 
-def make_mention(text, mention_dict):
+def make_mention(text, mention_dict, guild=None):
     """
     Searches a text for occurrences of placeholders and replaces them with 
-    the mention of corresponding objects.
+    the mention of corresponding objects, including custom emojis.
 
     Args:
-        text (str): any text
-        mention_dict (dict): a dictionary where the key is the placeholder and 
-        the value is the object to mention.
+        text (str): The input text containing placeholders.
+        mention_dict (dict): A dictionary where the key is the placeholder and 
+                             the value is the object to mention.
+        guild (discord.Guild, optional): The guild to search for custom emojis. Required for emoji replacement.
 
     Returns:
-        str: the given text with mentions replaced.
+        str: The given text with mentions and custom emojis replaced.
     """
-    for placeholder in list(mention_dict.keys()):
-        if placeholder in text:
-            text = text.replace(placeholder, mention_dict.get(placeholder, "{mention non trouvé}"))
+    if guild:
+        emoji_dict = {f"{{!{emoji.name}}}": f"<:{emoji.name}:{emoji.id}>" for emoji in guild.emojis}
+    else:
+        emoji_dict = {}
+
+    for placeholder, replacement in mention_dict.items():
+        text = text.replace(placeholder, replacement)
+
+    for emoji_placeholder, emoji_value in emoji_dict.items():
+        text = text.replace(emoji_placeholder, emoji_value)
+
     return text
+
 
 
 def generate_mention_dict(guild, newMember = None):
