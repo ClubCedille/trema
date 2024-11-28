@@ -1,7 +1,8 @@
 import asyncio
 from cogs.utils.discord import\
 	member_roles_are_default,\
-	send_delayed_dm
+	send_delayed_dm,\
+	send_reminder
 
 from cogs.utils.text_format import\
 	make_mention,\
@@ -89,3 +90,9 @@ def create_event_reactions(trema_bot, trema_db):
 				trema_db.register_server(guild)
 			else:
 				logger.info(f"Server {guild.name} (ID: {guild.id}) is already registered.")
+
+		reminders = trema_db.get_pending_reminders()
+
+		for reminder in reminders:
+			asyncio.create_task(send_reminder(reminder, trema_bot, trema_db))
+

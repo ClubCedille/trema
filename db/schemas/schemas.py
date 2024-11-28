@@ -15,6 +15,7 @@ class Schema(Enum):
 	WELCOME = "welcome"
 	webhooks = "webhooks"
 	MEMBERS = "members"
+	REMINDERS = "reminders"
 
 	@staticmethod
 	def from_str(a_string):

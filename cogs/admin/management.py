@@ -1,5 +1,5 @@
 
-from discord import Embed, Color, utils, File
+from discord import Embed, Color, Option, utils, File
 import discord
 from cogs.prompts import\
     prompt_user,\
@@ -10,7 +10,8 @@ from cogs.utils.text_format import\
     make_mention,\
     generate_mention_dict
 from cogs.utils.discord import\
-    send_delayed_dm
+    send_delayed_dm,\
+	send_reminder
 from cogs.admin import is_authorized
 import asyncio
 import random
@@ -129,11 +130,12 @@ def _create_server_management_cmds(trema_bot, trema_db):
 			await ctx.author.send('Annonce annulée.')
 
 	@trema_bot.command(name="tombola", description="Organiser un tirage au sort")
+	@is_authorized(trema_db)
 	async def tombola(ctx):
 		await ctx.respond("Veuillez vérifier vos messages privés pour des instructions supplémentaires.", ephemeral=True)
 
 		mention_dict = generate_mention_dict(ctx.guild)
-		
+
 		time_and_date, delay = await prompt_user_with_date(ctx, "Quelle est la date et l'heure du tirage au sort ? (AAAA-MM-JJ HH:MM:SS)", 'Date et heure du tirage')
 		if not time_and_date:
 			return
@@ -224,3 +226,75 @@ def _create_server_management_cmds(trema_bot, trema_db):
 
 		asyncio.create_task(pick_winner())
 		await ctx.author.send('Tirage au sort organisé avec succès.')
+
+	@trema_bot.command(name="remindme", description="Set a reminder for a message")
+	@is_authorized(trema_db)
+	async def remindme(ctx, message_link: Option(str, "Lien du message à rappeler"), delay: Option(str, "Délai avant le rappel. Ex: '1 week', '3 hours', '4 days'")):
+		import re
+		from datetime import datetime, timezone, timedelta
+
+		def parse_delay(delay_str):
+			units = {
+				'second': 1, 'seconds': 1,
+				'minute': 60, 'minutes': 60,
+				'hour': 3600, 'hours': 3600,
+				'day': 86400, 'days': 86400,
+				'week': 604800, 'weeks': 604800
+			}
+			pattern = r'(\d+)\s*(second|seconds|minute|minutes|hour|hours|day|days|week|weeks)'
+			match = re.match(pattern, delay_str.lower())
+			if not match:
+				return None
+			amount, unit = match.groups()
+			return int(amount) * units[unit]
+
+		message_link_regex = r"https?://discord(?:app)?\.com/channels/(\d+)/(\d+)/(\d+)"
+		match = re.match(message_link_regex, message_link)
+		if not match:
+			await ctx.respond("Lien du message invalide.", ephemeral=True)
+			return
+
+		guild_id, channel_id, message_id = match.groups()
+
+		guild = ctx.guild
+		if str(guild.id) != guild_id:
+			await ctx.respond("Le lien du message doit être dans ce serveur.", ephemeral=True)
+			return
+
+		channel = guild.get_channel(int(channel_id))
+		if not channel:
+			await ctx.respond("Le canal du message n'a pas été trouvé.", ephemeral=True)
+			return
+
+		try:
+			message = await channel.fetch_message(int(message_id))
+		except discord.NotFound:
+			await ctx.respond("Message introuvable.", ephemeral=True)
+			return
+
+		delay_seconds = parse_delay(delay)
+		if delay_seconds is None:
+			await ctx.respond("Format de délai invalide. Utilisez par exemple '1 week', '3 hours', '4 days'.", ephemeral=True)
+			return
+
+		scheduled_time = datetime.now(timezone.utc) + timedelta(seconds=delay_seconds)
+
+		confirmation_message = await ctx.channel.send(
+			f"Rappel programmé pour [ce message]({message_link}) dans {delay}. Réagissez avec ✅ pour vous abonner."
+		)
+
+		await confirmation_message.add_reaction('✅')
+
+		await ctx.respond(f"Rappel programmé pour le message: {message.jump_url} dans {delay}.", ephemeral=True)
+
+		reminder_data = {
+			'guild_id': guild.id,
+			'confirmation_channel_id': ctx.channel.id,
+			'confirmation_message_id': confirmation_message.id,
+			'scheduled_time': scheduled_time.timestamp(),
+			'message_link': message_link,
+			'creator_id': ctx.author.id,
+		}
+		trema_db.add_reminder(reminder_data)
+
+		asyncio.create_task(send_reminder(reminder_data, trema_bot, trema_db))

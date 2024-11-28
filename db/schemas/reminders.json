@@ -1,0 +1,14 @@
+{
+	"type": "object",
+	"properties": {
+		"_id": {"type": "number"},
+		"guild_id": {"type": "number"},
+		"scheduled_time": {"type": "number"},
+		"status": {"type": "string", "enum": ["pending", "sent", "cancelled"]},
+		"confirmation_message_id": {"type": "number"},
+		"confirmation_channel_id": {"type": "number"},
+		"message_link": {"type": "string"},
+		"creator_id": {"type": "number"}
+	},
+	"required": ["_id", "guild_id", "scheduled_time", "status", "confirmation_message_id", "confirmation_channel_id", "message_link"]
+}

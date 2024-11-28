@@ -458,6 +458,22 @@ class _TremaDatabase:
 		if server_doc is None:
 			return []
 		return server_doc.get("server_roles", [])
+	
+	def get_pending_reminders(self):
+		reminders_collection = self._get_collection("reminders")
+		reminders = reminders_collection.find({"status": "pending"})
+		return list(reminders)
+	
+	def add_reminder(self, reminder):
+		reminder["_id"] = self.generate_rand_id("reminders")
+		reminder["status"] = "pending"
+		self.add_document("reminders", reminder)
+
+	def update_reminder_status(self, reminder_id, status):
+		reminders_collection = self._get_collection("reminders")
+		query = {"_id": reminder_id}
+		update = {"$set": {"status": status}}
+		reminders_collection.update_one(query, update)
 
 mongo_user = os.getenv('MONGO_USER')
 mongo_password = os.getenv('MONGO_PASSWORD')
