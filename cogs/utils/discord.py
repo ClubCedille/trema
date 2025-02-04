@@ -1,6 +1,8 @@
 import asyncio
 import discord
 import os
+from datetime import datetime, timezone, timedelta
+
 
 _ROLE_EVERYONE = "@everyone"
 
@@ -106,38 +108,75 @@ async def send_delayed_dm(user, message, delay, condition=None, message_type='te
 		else:
 			await user.send(message)
 
-async def send_reminder(reminder_data, trema_bot, trema_db):
+async def send_reminder(reminder_id, trema_bot, trema_db):
 	try:
-		from datetime import datetime
-		scheduled_time = datetime.fromtimestamp(reminder_data['scheduled_time'])
-		now = datetime.now()
+		reminder_data = trema_db.get_reminder(reminder_id)
+		if not reminder_data:
+			print(f"Erreur: Rappel {reminder_id} introuvable.")
+			return
+
+		scheduled_time = datetime.fromtimestamp(reminder_data['scheduled_time'], timezone.utc)
+		now = datetime.now(timezone.utc)
 		delay_seconds = (scheduled_time - now).total_seconds()
 		if delay_seconds > 0:
-			await asyncio.sleep(delay_seconds)
+			while delay_seconds > 3600:
+				sleep_time = delay_seconds * 2 / 3
+				await asyncio.sleep(sleep_time)
+
+				now_utc = datetime.now(timezone.utc)
+				delay_seconds = (scheduled_time - now_utc).total_seconds()
+
+			if delay_seconds > 0:
+				await asyncio.sleep(delay_seconds)
+
+		current_status = trema_db.get_reminder_status(reminder_id)
+		if current_status != 'pending':
+			return
+		trema_db.update_reminder_status(reminder_data['_id'], 'sent')
+
 		guild = trema_bot.get_guild(reminder_data['guild_id'])
 		if guild is None:
 			return
-		confirmation_channel = guild.get_channel(reminder_data['confirmation_channel_id'])
-		if confirmation_channel is None:
-			return
-		confirmation_message = await confirmation_channel.fetch_message(reminder_data['confirmation_message_id'])
-		if confirmation_message is None:
-			return
 
-		reaction = discord.utils.get(confirmation_message.reactions, emoji='✅')
-		if reaction:
-			users = await reaction.users().flatten()
-			users = [user for user in users if user.id != trema_bot.user.id]
-			for user in users:
+		creator = await trema_bot.fetch_user(reminder_data['creator_id'])
+		public = reminder_data.get('public', True)
+
+		if public:
+			confirmation_channel = guild.get_channel(reminder_data['confirmation_channel_id'])
+			if confirmation_channel is None:
 				try:
-					await user.send(f"Voici votre rappel pour le message: {reminder_data['message_link']}")
+					await creator.send(f"Voici votre rappel pour le message: {reminder_data['message_link']}")
 				except discord.Forbidden:
 					pass
+				return
 
-			# send to creator of reminder
-			creator = await trema_bot.fetch_user(reminder_data['creator_id'])
-			await creator.send(f"Voici votre rappel pour le message: {reminder_data['message_link']}")
-		trema_db.update_reminder_status(reminder_data, 'sent')
+			confirmation_message = await confirmation_channel.fetch_message(reminder_data['confirmation_message_id'])
+			if confirmation_message is None:
+				try:
+					await creator.send(f"Voici votre rappel pour le message: {reminder_data['message_link']}")
+				except discord.Forbidden:
+					pass
+				return
+
+			reaction = discord.utils.get(confirmation_message.reactions, emoji='✅')
+			if reaction:
+				users = await reaction.users().flatten()
+				users = [user for user in users if user.id != trema_bot.user.id]
+
+				for user in users:
+					try:
+						await user.send(f"Voici votre rappel pour le message: {reminder_data['message_link']}")
+					except discord.Forbidden:
+						pass
+			try:
+				await creator.send(f"Voici votre rappel pour le message: {reminder_data['message_link']}")
+			except discord.Forbidden:
+				pass
+		else:
+			try:
+				await creator.send(f"Voici votre rappel pour le message: {reminder_data['message_link']}")
+			except discord.Forbidden:
+				pass
 	except Exception as e:
 		print(f"Erreur lors de l'envoi du rappel: {e}")
 

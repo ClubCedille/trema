@@ -49,6 +49,18 @@ services:
     networks:
       - app_network
 
+  mongoClient:
+    image: mongoclient/mongoclient:latest
+    container_name: mongoClient
+    networks:
+      - app_network
+    ports:
+      - 3300:3000
+    volumes:
+      - ./mongoClient:/home/mongoClient/config
+    depends_on:
+      - mongodb
+
 networks:
   app_network:
     driver: bridge

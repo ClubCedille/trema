@@ -94,5 +94,5 @@ def create_event_reactions(trema_bot, trema_db):
 		reminders = trema_db.get_pending_reminders()
 
 		for reminder in reminders:
-			asyncio.create_task(send_reminder(reminder, trema_bot, trema_db))
+			asyncio.create_task(send_reminder(reminder['_id'], trema_bot, trema_db))
 

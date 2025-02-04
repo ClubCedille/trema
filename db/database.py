@@ -468,12 +468,30 @@ class _TremaDatabase:
 		reminder["_id"] = self.generate_rand_id("reminders")
 		reminder["status"] = "pending"
 		self.add_document("reminders", reminder)
+		return reminder["_id"]
 
 	def update_reminder_status(self, reminder_id, status):
 		reminders_collection = self._get_collection("reminders")
 		query = {"_id": reminder_id}
 		update = {"$set": {"status": status}}
 		reminders_collection.update_one(query, update)
+
+	def get_reminder_status(self, reminder_id):
+		reminders_collection = self._get_collection("reminders")
+		reminder = reminders_collection.find_one({"_id": reminder_id})
+		if reminder is None:
+			return None
+		return reminder.get("status")
+	
+	def update_reminder_confirmation_message(self, reminder_id, message_id):
+		reminders_collection = self._get_collection("reminders")
+		query = {"_id": reminder_id}
+		update = {"$set": {"confirmation_message_id": message_id}}
+		reminders_collection.update_one(query, update)
+
+	def get_reminder(self, reminder_id):
+		reminders_collection = self._get_collection("reminders")
+		return reminders_collection.find_one({"_id": reminder_id})
 
 mongo_user = os.getenv('MONGO_USER')
 mongo_password = os.getenv('MONGO_PASSWORD')

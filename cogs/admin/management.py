@@ -15,6 +15,12 @@ from cogs.utils.discord import\
 from cogs.admin import is_authorized
 import asyncio
 import random
+import re
+import datetime
+from datetime import timezone, timedelta
+import pytz
+
+eastern = pytz.timezone('America/Toronto')
 
 def _create_server_management_cmds(trema_bot, trema_db):
 
@@ -227,74 +233,87 @@ def _create_server_management_cmds(trema_bot, trema_db):
 		asyncio.create_task(pick_winner())
 		await ctx.author.send('Tirage au sort organisé avec succès.')
 
-	@trema_bot.command(name="remindme", description="Set a reminder for a message")
+	@trema_bot.message_command(name="Set Reminder")
 	@is_authorized(trema_db)
-	async def remindme(ctx, message_link: Option(str, "Lien du message à rappeler"), delay: Option(str, "Délai avant le rappel. Ex: '1 week', '3 hours', '4 days'")):
-		import re
-		from datetime import datetime, timezone, timedelta
+	async def remindme(ctx, message: discord.Message):
+		"""
+		Context menu command to set a reminder for the selected message.
+		"""
+		await ctx.respond("Veuillez vérifier vos messages privés pour des instructions supplémentaires.", ephemeral=True)
 
-		def parse_delay(delay_str):
+		def parse_delay(input_str):
+			try:
+				parsed_date = datetime.datetime.strptime(input_str, "%Y-%m-%d %H:%M:%S")
+				local_dt = eastern.localize(parsed_date)
+				return local_dt.astimezone(timezone.utc)
+			except ValueError:
+				pass
+
 			units = {
-				'second': 1, 'seconds': 1,
-				'minute': 60, 'minutes': 60,
-				'hour': 3600, 'hours': 3600,
+				# EN
+				'second': 1, 'seconds': 1, 'sec': 1, 'secs': 1,
+				'minute': 60, 'minutes': 60, 'min': 60, 'mins': 60,
+				'hour': 3600, 'hours': 3600, 'hr': 3600, 'hrs': 3600,
 				'day': 86400, 'days': 86400,
-				'week': 604800, 'weeks': 604800
+				'week': 604800, 'weeks': 604800,
+				# FR
+				'seconde': 1, 'secondes': 1, 'sec': 1, 'secs': 1,
+				'heure': 3600, 'heures': 3600, 'h': 3600,
+				'jour': 86400, 'jours': 86400,
+				'semaine': 604800, 'semaines': 604800, 'sem': 604800
 			}
-			pattern = r'(\d+)\s*(second|seconds|minute|minutes|hour|hours|day|days|week|weeks)'
-			match = re.match(pattern, delay_str.lower())
-			if not match:
-				return None
-			amount, unit = match.groups()
-			return int(amount) * units[unit]
 
-		message_link_regex = r"https?://discord(?:app)?\.com/channels/(\d+)/(\d+)/(\d+)"
-		match = re.match(message_link_regex, message_link)
-		if not match:
-			await ctx.respond("Lien du message invalide.", ephemeral=True)
+			pattern = r'(\d+)\s*(second|seconds|sec|secs|minute|minutes|min|mins|hour|hours|hr|hrs|day|days|week|weeks|seconde|secondes|heure|heures|h|jour|jours|semaine|semaines|sem)'
+
+			match = re.match(pattern, input_str.lower())
+			if match:
+				amount, unit = match.groups()
+				delay_seconds = int(amount) * units[unit]
+				return datetime.datetime.now(timezone.utc)+ timedelta(seconds=delay_seconds)
+
+			return None
+
+		reminder_input = await prompt_user(ctx, "Entrez le délai avant le rappel. Ex: '30 minutes', '1 week/semaine', '3 hours/heures'. Vous pouvez aussi entrer une date et heure précises (AAAA-MM-JJ HH:MM:SS).", 'Délai')
+		if not reminder_input:
+			await ctx.respond("Commande annulée : Aucun délai fourni.", ephemeral=True)
 			return
 
-		guild_id, channel_id, message_id = match.groups()
-
-		guild = ctx.guild
-		if str(guild.id) != guild_id:
-			await ctx.respond("Le lien du message doit être dans ce serveur.", ephemeral=True)
+		scheduled_time = parse_delay(reminder_input)
+		if scheduled_time is None:
+			await ctx.respond("Format de délai invalide. Utilisez par exemple '30 minutes', '1 week', '3 hours' ou une date et heure précises (AAAA-MM-JJ HH:MM:SS).", ephemeral=True)
 			return
 
-		channel = guild.get_channel(int(channel_id))
-		if not channel:
-			await ctx.respond("Le canal du message n'a pas été trouvé.", ephemeral=True)
+		public = await prompt_user_with_confirmation(ctx, "Le rappel sera-t-il public ? (True/False)")
+		if public is None:
+			await ctx.respond("Commande annulée : Choix public/privé non fourni.", ephemeral=True)
 			return
 
-		try:
-			message = await channel.fetch_message(int(message_id))
-		except discord.NotFound:
-			await ctx.respond("Message introuvable.", ephemeral=True)
-			return
-
-		delay_seconds = parse_delay(delay)
-		if delay_seconds is None:
-			await ctx.respond("Format de délai invalide. Utilisez par exemple '1 week', '3 hours', '4 days'.", ephemeral=True)
-			return
-
-		scheduled_time = datetime.now(timezone.utc) + timedelta(seconds=delay_seconds)
-
-		confirmation_message = await ctx.channel.send(
-			f"Rappel programmé pour [ce message]({message_link}) dans {delay}. Réagissez avec ✅ pour vous abonner."
-		)
-
-		await confirmation_message.add_reaction('✅')
-
-		await ctx.respond(f"Rappel programmé pour le message: {message.jump_url} dans {delay}.", ephemeral=True)
 
 		reminder_data = {
-			'guild_id': guild.id,
-			'confirmation_channel_id': ctx.channel.id,
-			'confirmation_message_id': confirmation_message.id,
+			'guild_id': ctx.guild.id,
+			'confirmation_channel_id': ctx.channel.id if public else None,
+			'confirmation_message_id': None,
 			'scheduled_time': scheduled_time.timestamp(),
-			'message_link': message_link,
+			'message_link': message.jump_url,
 			'creator_id': ctx.author.id,
+			'status': 'pending',
+			'public': public
 		}
-		trema_db.add_reminder(reminder_data)
 
-		asyncio.create_task(send_reminder(reminder_data, trema_bot, trema_db))
+		reminder_id = trema_db.add_reminder(reminder_data)
+
+		formatted_time = scheduled_time.astimezone(eastern).strftime('%Y-%m-%d %H:%M:%S %Z')
+		if public:
+			confirmation_message = await ctx.channel.send(
+				f"Rappel public programmé pour [ce message]({message.jump_url}) {formatted_time}. Réagissez avec ✅ pour vous abonner."
+			)
+
+			await confirmation_message.add_reaction('✅')
+			trema_db.update_reminder_confirmation_message(reminder_id, confirmation_message.id)
+
+		else:
+			await ctx.author.send(
+				f"Rappel privé programmé pour [ce message]({message.jump_url}) {formatted_time}."
+			)
+
+		asyncio.create_task(send_reminder(reminder_id, trema_bot, trema_db))

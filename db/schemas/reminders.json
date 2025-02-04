@@ -5,10 +5,11 @@
 		"guild_id": {"type": "number"},
 		"scheduled_time": {"type": "number"},
 		"status": {"type": "string", "enum": ["pending", "sent", "cancelled"]},
-		"confirmation_message_id": {"type": "number"},
-		"confirmation_channel_id": {"type": "number"},
+		"confirmation_message_id": {"type": ["number", "null"]},
+		"confirmation_channel_id": {"type": ["number", "null"]},
 		"message_link": {"type": "string"},
-		"creator_id": {"type": "number"}
+		"creator_id": {"type": "number"},
+		"public": {"type": "boolean"}
 	},
-	"required": ["_id", "guild_id", "scheduled_time", "status", "confirmation_message_id", "confirmation_channel_id", "message_link"]
+	"required": ["_id", "guild_id", "scheduled_time", "status", "confirmation_channel_id", "message_link"]
 }
