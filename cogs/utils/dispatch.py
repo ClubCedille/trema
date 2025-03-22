@@ -57,7 +57,7 @@ async def dispatch_add_member_to_gh_org_gw(username, email, github_token, team_s
 
 async def post_to_calidum(sender_username, request_service, request_details):
     api_key = os.getenv('CALIDUM_API_KEY')
-    url = "https://calidum-rotae.omni.cedille.club"
+    url = "https://calidum-rotae.prod.cedille.club"
     service_details = {
         "Sender": {
             "FirstName": sender_username,
