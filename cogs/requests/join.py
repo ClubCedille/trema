@@ -45,7 +45,7 @@ def _create_member_requests_cmds(trema_db, request):
 
             if not user_has_gh_account:
                  # Give user link to our wiki track to learn git and github and then return to the command to try again
-                await ctx.author.send("Vous pouvez apprendre à utiliser Git et GitHub en suivant ce lien : https://wiki.cedille.club/onboarding/tracks/learn-git/ \n\nUne fois que vous avez un compte GitHub, veuillez réessayer la commande `/request join`.")
+                await ctx.author.send("Vous pouvez apprendre à utiliser Git et GitHub en suivant ce lien : https://wiki.cedille.club/en/onboarding/tracks/learn-git/ \n\nUne fois que vous avez un compte GitHub, veuillez réessayer la commande `/request join`.")
                 return
 
             github_username = await prompt_user(ctx, "Veuillez entrer votre nom d'utilisateur GitHub", "Nom d'utilisateur GitHub pour devenir membre")
