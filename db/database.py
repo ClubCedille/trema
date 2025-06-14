@@ -212,7 +212,7 @@ class _TremaDatabase:
 			"calidum_enabled": False
 		}
 		self.add_document("server", server_doc)
-	
+
 		return False
 
 	def _set_document_attr(self, collection, doc_id, attr_key, attr_val):
@@ -277,6 +277,12 @@ class _TremaDatabase:
 
 	def set_server_member_role(self, server_id, member_role):
 		self._set_document_attr("server", server_id, "member_role", member_role)
+
+	def get_server_onboarding_role(self, server_id):
+		return self._get_server_attr(server_id, "onboarding_role")
+
+	def set_server_onboarding_role(self, server_id, onboarding_role):
+		self._set_document_attr("server", server_id, "onboarding_role", onboarding_role)
 
 	def set_server_calidum_enabled(self, server_id, enable):
 		self._set_document_attr("server", server_id, "calidum_enabled", enable)
@@ -351,7 +357,7 @@ class _TremaDatabase:
 
 		"""
 		requests_collection = self._get_collection("requests")
-		
+
 		request_document = {
 			"_id": self.generate_rand_id("requests"),
 			"guild_id": guild_id,
@@ -360,7 +366,7 @@ class _TremaDatabase:
 			"created_at": datetime.now(),
 			"status": "submitted"
     	}
-		
+
 		requests_collection.insert_one(request_document)
 
 	def list_requests(self, guild_id):
@@ -370,16 +376,16 @@ class _TremaDatabase:
 			sort=[("created_at", -1)]
 		)
 		return list(requests)
-		
+
 	def delete_request(self, guild_id, request_id):
 		requests_collection = self._get_collection("requests")
 		try:
 			oid = ObjectId(request_id)
 		except:
-			return False  
+			return False
 		result = requests_collection.delete_one({"guild_id": guild_id, "_id": oid})
 		return result.deleted_count > 0
-	
+
 	def get_all_server_configs(self, server_id):
 		def safe_get(attr_value, default="Non configuré"):
 			return default if attr_value is None else attr_value
@@ -387,6 +393,7 @@ class _TremaDatabase:
 		configs = {
 			"Nom du serveur": safe_get(self._get_server_attr(server_id, "name")),
 			"Rôle d'administrateur": safe_get(self._get_server_attr(server_id, "admin_role")),
+                        "Rôle de nouveau membre": safe_get(self._get_server_attr(server_id, "onboarding_role")),
 			"Rôle de membre": safe_get(self._get_server_attr(server_id, "member_role")),
 			"Rôles du serveur": safe_get(self._get_server_attr(server_id, "server_roles"), default=[]),
 			"Date d'adhésion": safe_get(self._get_server_attr(server_id, "joined_at")),
@@ -414,13 +421,13 @@ class _TremaDatabase:
 			formatted_configs.append(f"**{key}**: {formatted_value}")
 
 		return "\n\n".join(formatted_configs)
-	
+
 	def add_member(self, server_id, member):
 		member["_id"] = self.generate_rand_id("members")
 		member["server_id"] = server_id
 		if "status" not in member:
 			member["status"] = "pending"
-		
+
 		self.add_document("members", member)
 
 	def get_members(self, server_id, status=None):
@@ -444,7 +451,7 @@ class _TremaDatabase:
 	def get_member(self, member_id):
 		members_collection = self._get_collection("members")
 		return members_collection.find_one({"_id": member_id})
-	
+
 	def set_server_roles(self, server_id, role_names):
 		server_collection = self._get_collection("server")
 		server_collection.update_one(
@@ -458,12 +465,12 @@ class _TremaDatabase:
 		if server_doc is None:
 			return []
 		return server_doc.get("server_roles", [])
-	
+
 	def get_pending_reminders(self):
 		reminders_collection = self._get_collection("reminders")
 		reminders = reminders_collection.find({"status": "pending"})
 		return list(reminders)
-	
+
 	def add_reminder(self, reminder):
 		reminder["_id"] = self.generate_rand_id("reminders")
 		reminder["status"] = "pending"
@@ -482,7 +489,7 @@ class _TremaDatabase:
 		if reminder is None:
 			return None
 		return reminder.get("status")
-	
+
 	def update_reminder_confirmation_message(self, reminder_id, message_id):
 		reminders_collection = self._get_collection("reminders")
 		query = {"_id": reminder_id}

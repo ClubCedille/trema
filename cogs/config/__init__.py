@@ -19,7 +19,7 @@ import asyncio
 def _create_config_cmds(trema_db):
 	config = SlashCommandGroup(name="config",
 		description="Configurez les options de Trëma pour votre serveur.")
-	
+
 	_create_config_reminder_cmds(trema_db, config)
 
 	@config.command(name="adminrole",
@@ -58,7 +58,7 @@ def _create_config_cmds(trema_db):
 													f"{role_id} n'est pas un ID de rôle valide ou 'None'.")
 			await ctx.respond(embed=error_embed, ephemeral=True)
 			return
-		
+
 		# Check if the role exists in the server
 		role = guild.get_role(role_id)
 		if role is None:
@@ -76,19 +76,19 @@ def _create_config_cmds(trema_db):
 			embed_title, updated_value, prev_value)
 
 		await ctx.respond(embed=response_embed, ephemeral=True)
-	
+
 	@config.command(name="memberrole",
 		description="Configurer le rôle des membres approuvés.")
 	@is_authorized(trema_db)
-	async def config_member_role(ctx, 
+	async def config_member_role(ctx,
 			role_id: Option(str, "L'ID du rôle des membres approuvés.")):
-		
+
 		try:
 			role_id = int(role_id)
 		except ValueError:
 			await ctx.respond("Rôle invalide. Veuillez vérifier l'ID du rôle.", ephemeral=True)
 			return
-		
+
 		server_id = ctx.guild.id
 		role = ctx.guild.get_role(role_id)
 
@@ -101,12 +101,37 @@ def _create_config_cmds(trema_db):
 		await ctx.respond(f"Le rôle des membres approuvés a été configuré avec succès : {role.name} (ID: {role_id}).", ephemeral=True)
 
 
+	@config.command(name="onboardingrole",
+		description="Configurer le rôle des nouveaux membres.")
+	@is_authorized(trema_db)
+	async def config_onboarding_role(ctx,
+			role_id: Option(str, "L'ID du rôle des nouveaux membres.")):
+
+		try:
+			role_id = int(role_id)
+		except ValueError:
+			await ctx.respond("Rôle invalide. Veuillez vérifier l'ID du rôle.", ephemeral=True)
+			return
+
+		server_id = ctx.guild.id
+		role = ctx.guild.get_role(role_id)
+
+		if not role:
+			await ctx.respond("Rôle invalide. Veuillez vérifier l'ID du rôle.", ephemeral=True)
+			return
+
+		trema_db.set_server_onboarding_role(server_id, role_id)
+
+		await ctx.respond(f"Le rôle des nouveaux membres a été configuré avec succès : {role.name} (ID: {role_id}).", ephemeral=True)
+
+
+
 	@config.command(name="enablecalidum",
 		description="Activer ou désactiver les notifications Calidum.")
 	@is_authorized(trema_db)
 	async def config_calidum(ctx,
 			enable: Option(bool, "Activer ou désactiver les notifications Calidum")):
-		
+
 		server_id = ctx.guild.id
 		prev_value = trema_db.get_server_calidum_enabled(server_id)
 		embed_title = _make_cmd_full_name(ctx.command) + _SPACE + str(enable)
@@ -135,7 +160,7 @@ def _create_config_cmds(trema_db):
 			+ "d'un paramètre.\n\n"\
 			+ "Certains paramètres sont des messages affichés après un évènement concernant "\
 			+ "un membre particulier. Pour mentionner ce membre, écrivez **@-** dans ces messages. "\
-			+ "Le signe **[@-]** au début d'une description indique que cette action est possible." 
+			+ "Le signe **[@-]** au début d'une description indique que cette action est possible."
 		help_embed = Embed(
 			title=embed_title,
 			description=instructions,
@@ -191,17 +216,17 @@ def _create_config_cmds(trema_db):
 		description=f"{_MEMBER_MENTIONABLE} Changer le message affiché lorsqu'un membre arrive dans le serveur")
 	@is_authorized(trema_db)
 	async def config_welcome_msg(ctx):
-		
+
 		guild_id = ctx.guild_id
 		prev_value = trema_db.get_server_welcome_msg(guild_id)
-		
+
 		await ctx.respond("Veuillez vérifier vos messages privés pour des instructions supplémentaires.", ephemeral=True)
-		
+
 		user = ctx.author
 		dm_channel = user.dm_channel
 		if dm_channel is None:
 			dm_channel = await user.create_dm()
-			
+
 		embed = Embed(
 			title="Configuration du message d'accueil",
 			description=f"Le message d'accueil actuel est: `{prev_value}`\n\n"
@@ -216,13 +241,13 @@ def _create_config_cmds(trema_db):
 						"Veuillez entrer le nouveau message d'accueil.",
 			color=Color.blue()
 		)
-		
+
 		await dm_channel.send(embed=embed)
-		
+
 		# Wait for user input in DM
 		def check(m):
 			return m.author.id == user.id and m.channel.id == dm_channel.id
-		
+
 		try:
 			user_message = await ctx.bot.wait_for('message', timeout=120.0, check=check)
 		except asyncio.TimeoutError:
@@ -239,7 +264,7 @@ def _create_config_cmds(trema_db):
 	@is_authorized(trema_db)
 	async def config_leave_msg(ctx,
 			message: Option(str, f"{_MEMBER_MENTIONABLE} Nouveau message de départ.")):
-		
+
 		guild_id = ctx.guild_id
 		embed_title = _make_cmd_full_name(ctx.command) + _SPACE + message
 		prev_value = trema_db.get_server_leave_msg(guild_id)
@@ -270,7 +295,7 @@ def _create_config_cmds(trema_db):
 	@is_authorized(trema_db)
 	async def config_member_join_msg(ctx):
 		guild_id = ctx.guild.id
-		
+
 		prev_value = trema_db.get_server_member_join_msg(guild_id)
 
 		await ctx.respond("Veuillez vérifier vos messages privés pour des instructions supplémentaires.", ephemeral=True)
@@ -302,10 +327,10 @@ def _create_config_cmds(trema_db):
 			new_value = user_message.content
 			trema_db.set_server_member_join_msg(guild_id, new_value)
 			confirmed_msg = trema_db.get_server_member_join_msg(guild_id)
-			
+
 			embed_title = "Message pour les requêtes de membre mis à jour"
 			response_embed = _make_config_confirm_embed(embed_title, confirmed_msg, prev_value)
-			
+
 			await dm_channel.send(embed=response_embed)
 
 	return config

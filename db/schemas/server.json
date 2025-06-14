@@ -9,7 +9,8 @@
 		},
 		"announce_chan_id": {"type": ["number", "null"]},
 		"welcome_id": {"type": "number"},
-		"admin_role": {"type": ["string", "null"]},
+	        "admin_role": {"type": ["string", "null"]},
+	  	"onboarding_role": {"type": ["string", "null"]},
 		"member_role": {"type": ["string", "null"]},
 		"calidum_enabled": {"type": "boolean"},
 		"webhooks": {
