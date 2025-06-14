@@ -49,7 +49,7 @@ create_event_reactions(trema, database)
 create_slash_cmds(trema, database, start_time, github_token)
 create_routes(app, database, trema)
 
-start_http_server(8000)
+start_http_server(9090)
 
 async def run_quart_app(app, host, port):
     config = Config()
@@ -59,7 +59,7 @@ async def run_quart_app(app, host, port):
 async def main():
 
     logger.info("Starting the bot and API")
-    
+
     bot_coro = asyncio.create_task(trema.start(bot_token))
     api_coro = asyncio.create_task(run_quart_app(app, api_address, api_port))
 
@@ -78,4 +78,3 @@ if __name__ == '__main__':
     finally:
         logger.info("Main application shutting down")
         loop.close()
-

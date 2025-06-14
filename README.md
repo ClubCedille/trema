@@ -46,7 +46,7 @@ __Commandes de Configuration (/config)__:
 __Sous-commandes de Rappel (/config rappel)__:
 
 * /config rappel message [message]: Configure le message de rappel envoyé aux
-  membres qui n'ont pas encore choisi de rôle. Rôle admin requis. 
+  membres qui n'ont pas encore choisi de rôle. Rôle admin requis.
 * /config rappel delai [délai]: Définit le délai en minutes avant que le message
   de rappel soit envoyé. Rôle admin requis.
 
@@ -157,7 +157,7 @@ Exemple de Payload :
 Définissez la variable d'environnement suivante :
 
 * DISCORD_TOKEN : Discord bot token
-* MONGO_USER : utilisateur de la db 
+* MONGO_USER : utilisateur de la db
 * MONGO_PASSWORD : mot de passe de la db
 * MONGO_HOST : nom d'hôte de la db
 * MONGO_PORT : Port pour la db
@@ -307,8 +307,8 @@ metadata:
 spec:
   ports:
     - name: metrics
-      port: 8000
-      targetPort: 8000
+      port: 9090
+      targetPort: 9090
     ... # other ports
   selector:
     app: trema
