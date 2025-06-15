@@ -12,7 +12,7 @@ def _create_member_requests_cmds(trema_db, request):
         await ctx.defer(ephemeral=True)
 
         requester_id = ctx.author.id
-        server_id = ctx.guild.id
+        server_id = ctx.guild_id
         username = ctx.author.name
 
         roles = trema_db.get_server_roles(server_id)
@@ -65,12 +65,12 @@ def _create_member_requests_cmds(trema_db, request):
                         await ctx.author.add_roles(onboarding_role)
                 else:
                     if calidum_enabled:
-                        await post_to_calidum(username, f"Impossible de trouver le rôle des membres configuré pour {username}")
+                        await post_to_calidum(username, "Configuration Error", f"Impossible de trouver le rôle des membres configuré pour {username}")
 
             except Exception as e:
                 logger.error(f"Exception: {e}")
                 if calidum_enabled:
-                    await post_to_calidum(username, f"Impossible d'ajouter le rôle des membres pour {username}, exception : {e}")
+                    await post_to_calidum(username, "Role Assignment Error", f"Impossible d'ajouter le rôle des membres pour {username}, exception : {e}")
 
             member_data = {
                 "user_id": requester_id,
