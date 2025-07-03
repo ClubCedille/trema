@@ -60,9 +60,9 @@ def _create_member_requests_cmds(trema_db, request):
                 onboarding_role_id = trema_db.get_server_onboarding_role(server_id)
                 if isinstance(onboarding_role_id, str):
                     onboarding_role_id = int(onboarding_role_id)
-                    onboarding_role = ctx.guild.get_role(onboarding_role_id)
-                    if onboarding_role:
-                        await ctx.author.add_roles(onboarding_role)
+                onboarding_role = ctx.guild.get_role(onboarding_role_id)
+                if onboarding_role:
+                    await ctx.author.add_roles(onboarding_role)
                 else:
                     if calidum_enabled:
                         await post_to_calidum(username, "Configuration Error", f"Impossible de trouver le rôle des membres configuré pour {username}")
