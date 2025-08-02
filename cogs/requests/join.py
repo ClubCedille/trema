@@ -1,10 +1,11 @@
 from datetime import datetime
 from discord import Embed, Color
 from cogs.utils.dispatch import post_to_calidum
-from cogs.prompts import prompt_user_with_select, prompt_user, prompt_user_with_confirmation
+from cogs.prompts import prompt_user_with_select, prompt_user, prompt_user_with_confirmation, prompt_user_error
 from cogs.utils.discord import find_role_in_guild
 from logger import logger
 from cogs.utils.text_format import make_mention, generate_mention_dict
+from cogs.utils.verify_gh_username import verify_gh_user
 
 def _create_member_requests_cmds(trema_db, request):
     @request.command(name="join", description="Obtenir accès au reste du serveur.")
@@ -49,6 +50,8 @@ def _create_member_requests_cmds(trema_db, request):
                 return
 
             github_username = await prompt_user(ctx, "Veuillez entrer votre nom d'utilisateur GitHub", "Nom d'utilisateur GitHub pour devenir membre")
+            while not verify_gh_user(github_username):
+                github_username = await prompt_user_error(ctx, "Votre nom d'utilisateur Github est invalide, Veuillez réessayer", "Nom d'utilisateur GitHub pour devenir membre")
             if not github_username:
                 return
             github_email = await prompt_user(ctx, "Veillez entrer votre adresse e-mail associée à GitHub", "Adresse e-mail GitHub pour devenir membre")
