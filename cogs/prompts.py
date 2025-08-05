@@ -44,6 +44,28 @@ async def prompt_user(ctx, description, title=None):
 
     return response.content
 
+async def prompt_user_error(ctx, description, title=None):
+    embed = Embed(
+        title=title or "Prompt",
+        description=description,
+        color=Color.red()
+    )
+    message = await ctx.author.send(embed=embed)
+    dm_channel_id = message.channel.id
+    
+    def check(m):
+        return m.author.id == ctx.author.id and m.channel.id == dm_channel_id
+
+    try:
+        response = await ctx.bot.wait_for('message', check=check, timeout=120)
+        if not response:
+            ctx.author.send('Entrée invalide. Veuillez réessayer.')
+            return None
+    except asyncio.TimeoutError:
+        await ctx.author.send('Temps écoulé. Opération annulée.')
+        return None
+
+    return response.content
 async def prompt_user_with_confirmation(ctx, description, title=None):    
     embed = Embed(
         title=title or "Confirmation",
