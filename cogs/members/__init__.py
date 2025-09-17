@@ -25,14 +25,30 @@ def _create_member_cmds(trema_db, github_token):
 		if not members:
 			await ctx.respond("Aucun membre trouvé pour ce serveur.", ephemeral=True)
 		else:
-			embed = Embed(title="Liste des membres", description="Voici la liste des membres du serveur:", color=Color.blue())
-			for idx, member in enumerate(members, start=1):
-				embed.add_field(
-					name=f"#{idx}: {member['username']}",
-					value=f"ID: {member['_id']}\nStatut: {member['status']}\nRequête: {member.get('request_time', 'N/A')}\nGitHub: {member.get('github_username', 'N/A')}\nEmail: {member.get('github_email', 'N/A')}",
-					inline=False
-				)
-			await ctx.respond(embed=embed, ephemeral=True)
+			members_per_page = 20
+			total_members = len(members)
+			total_pages = (total_members + members_per_page - 1) // members_per_page
+
+			if total_pages == 1:
+				embed = Embed(title="Liste des membres", description=f"Voici la liste des {total_members} membres du serveur:", color=Color.blue())
+				for idx, member in enumerate(members, start=1):
+					embed.add_field(
+						name=f"#{idx}: {member['username']}",
+						value=f"ID: {member['_id']}\nStatut: {member['status']}\nRequête: {member.get('request_time', 'N/A')}\nGitHub: {member.get('github_username', 'N/A')}\nEmail: {member.get('github_email', 'N/A')}",
+						inline=False
+					)
+				await ctx.respond(embed=embed, ephemeral=True)
+			else:
+				page_members = members[:members_per_page]
+				embed = Embed(title="Liste des membres", description=f"Page 1/{total_pages} - {total_members} membres au total:", color=Color.blue())
+				for idx, member in enumerate(page_members, start=1):
+					embed.add_field(
+						name=f"#{idx}: {member['username']}",
+						value=f"ID: {member['_id']}\nStatut: {member['status']}\nRequête: {member.get('request_time', 'N/A')}\nGitHub: {member.get('github_username', 'N/A')}\nEmail: {member.get('github_email', 'N/A')}",
+						inline=False
+					)
+				embed.set_footer(text=f"Utilisez /member list pour voir tous les membres. Limité à {members_per_page} membres par page.")
+				await ctx.respond(embed=embed, ephemeral=True)
 
 	@member.command(name="update", description="Mettre à jour le statut d'un membre.")
 	@is_authorized(trema_db)
