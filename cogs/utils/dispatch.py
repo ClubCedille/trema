@@ -27,7 +27,7 @@ async def dispatch_grav_gw(domaine, nom_club, contexte, github_token):
                 logger.error(f"Failed to trigger workflow. Status code: {response.status}, Response body: {response_text}")
                 return False, f"Failed to trigger workflow. Status code: {response.status}"
 
-async def dispatch_add_member_to_gh_org_gw(username, email, github_token, team_sre, cluster_role):
+async def dispatch_add_member_to_gh_org_gw(username, email, github_token, team_sre, cluster_role, netdata_role):
     url = "https://api.github.com/repos/ClubCedille/Plateforme-Cedille/actions/workflows/add-new-member.yml/dispatches"
     headers = {
         "Accept": "application/vnd.github+json",
@@ -40,7 +40,8 @@ async def dispatch_add_member_to_gh_org_gw(username, email, github_token, team_s
             "github_username": username,
             "github_email": email,
             "team_sre": "true" if team_sre == "vrai" else "false",
-            "cluster_role": cluster_role
+            "cluster_role": cluster_role,
+            "netdata_role": netdata_role
         }
     }
 

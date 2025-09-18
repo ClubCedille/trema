@@ -298,8 +298,9 @@ async def add_member_to_gh_org_gw(ctx, member, github_token):
 				return
 		team_sre = await prompt_user_with_select(ctx, "Ajouter dans l'équipe SRE ?", ["vrai", "faux"], True)
 		cluster_role = await prompt_user_with_select(ctx, "Choisir le rôle pour le cluster", ["None", "Reader", "Operator", "Admin"], True)
+		netdata_role = await prompt_user_with_select(ctx, "Choisir le rôle pour Netdata", ["None", "admin", "observer"], True)
 
-		success, message = await dispatch_add_member_to_gh_org_gw(github_username, github_email, github_token, team_sre, cluster_role)
+		success, message = await dispatch_add_member_to_gh_org_gw(github_username, github_email, github_token, team_sre, cluster_role, netdata_role)
 
 		if success:
 			await ctx.author.send(f"Le membre {member['username']} a été ajouté à l'organisation GitHub avec succès.\n{message}")
