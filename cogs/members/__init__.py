@@ -7,7 +7,7 @@ from discord import\
 	utils,\
 	File,\
 	SelectOption
-from discord.ui import Select, View
+from discord.ui import Select, View, Button
 from cogs.admin import is_authorized
 from cogs.prompts import prompt_user_with_select, prompt_user_with_confirmation, prompt_user
 from logger import logger
@@ -29,6 +29,59 @@ def _create_member_cmds(trema_db, github_token):
 			total_members = len(members)
 			total_pages = (total_members + members_per_page - 1) // members_per_page
 
+			class MemberListView(View):
+				def __init__(self, members, members_per_page, total_pages):
+					super().__init__(timeout=300)
+					self.members = members
+					self.members_per_page = members_per_page
+					self.total_pages = total_pages
+					self.current_page = 1
+					self.update_buttons()
+
+				def update_buttons(self):
+					self.clear_items()
+					if self.total_pages > 1:
+						prev_button = Button(label="◀️ Précédent", style=2, disabled=(self.current_page == 1))
+						prev_button.callback = self.prev_page
+						self.add_item(prev_button)
+
+						next_button = Button(label="Suivant ▶️", style=2, disabled=(self.current_page == self.total_pages))
+						next_button.callback = self.next_page
+						self.add_item(next_button)
+
+				def get_embed(self):
+					start_idx = (self.current_page - 1) * self.members_per_page
+					end_idx = start_idx + self.members_per_page
+					page_members = self.members[start_idx:end_idx]
+
+					embed = Embed(
+						title="Liste des membres",
+						description=f"Page {self.current_page}/{self.total_pages} - {len(self.members)} membres au total:",
+						color=Color.blue()
+					)
+
+					for idx, member in enumerate(page_members, start=start_idx + 1):
+						embed.add_field(
+							name=f"#{idx}: {member['username']}",
+							value=f"ID: {member['_id']}\nStatut: {member['status']}\nRequête: {member.get('request_time', 'N/A')}\nGitHub: {member.get('github_username', 'N/A')}\nEmail: {member.get('github_email', 'N/A')}",
+							inline=False
+						)
+					return embed
+
+				async def prev_page(self, interaction):
+					if self.current_page > 1:
+						self.current_page -= 1
+						self.update_buttons()
+						embed = self.get_embed()
+						await interaction.response.edit_message(embed=embed, view=self)
+
+				async def next_page(self, interaction):
+					if self.current_page < self.total_pages:
+						self.current_page += 1
+						self.update_buttons()
+						embed = self.get_embed()
+						await interaction.response.edit_message(embed=embed, view=self)
+
 			if total_pages == 1:
 				embed = Embed(title="Liste des membres", description=f"Voici la liste des {total_members} membres du serveur:", color=Color.blue())
 				for idx, member in enumerate(members, start=1):
@@ -39,16 +92,9 @@ def _create_member_cmds(trema_db, github_token):
 					)
 				await ctx.respond(embed=embed, ephemeral=True)
 			else:
-				page_members = members[:members_per_page]
-				embed = Embed(title="Liste des membres", description=f"Page 1/{total_pages} - {total_members} membres au total:", color=Color.blue())
-				for idx, member in enumerate(page_members, start=1):
-					embed.add_field(
-						name=f"#{idx}: {member['username']}",
-						value=f"ID: {member['_id']}\nStatut: {member['status']}\nRequête: {member.get('request_time', 'N/A')}\nGitHub: {member.get('github_username', 'N/A')}\nEmail: {member.get('github_email', 'N/A')}",
-						inline=False
-					)
-				embed.set_footer(text=f"Utilisez /member list pour voir tous les membres. Limité à {members_per_page} membres par page.")
-				await ctx.respond(embed=embed, ephemeral=True)
+				view = MemberListView(members, members_per_page, total_pages)
+				embed = view.get_embed()
+				await ctx.respond(embed=embed, view=view, ephemeral=True)
 
 	@member.command(name="update", description="Mettre à jour le statut d'un membre.")
 	@is_authorized(trema_db)
@@ -61,9 +107,16 @@ def _create_member_cmds(trema_db, github_token):
 			await ctx.respond("Aucun membre trouvé pour ce serveur.", ephemeral=True)
 			return
 
+		if len(members) > 25:
+			members_to_show = members[:25]
+			warning = f"\n⚠️ Affichage des 25 premiers membres sur {len(members)} au total."
+		else:
+			members_to_show = members
+			warning = ""
+
 		member_options = [
 			SelectOption(label=member['username'], description=f"ID: {member['_id']}, Statut: {member['status']}", value=str(member['_id']))
-			for member in members
+			for member in members_to_show
 		]
 		
 		member_select = Select(
@@ -132,7 +185,7 @@ def _create_member_cmds(trema_db, github_token):
 		member_view = View()
 		member_view.add_item(member_select)
 
-		await ctx.respond("Sélectionnez le membre à mettre à jour:", view=member_view, ephemeral=True)
+		await ctx.respond(f"Sélectionnez le membre à mettre à jour:{warning}", view=member_view, ephemeral=True)
 
 	@member.command(name="delete", description="Supprimer un membre.")
 	@is_authorized(trema_db)
@@ -146,9 +199,16 @@ def _create_member_cmds(trema_db, github_token):
 			await ctx.respond("Aucun membre trouvé pour ce serveur.", ephemeral=True)
 			return
 
+		if len(members) > 25:
+			members_to_show = members[:25]
+			warning = f"\n⚠️ Affichage des 25 premiers membres sur {len(members)} au total."
+		else:
+			members_to_show = members
+			warning = ""
+
 		member_options = [
 			SelectOption(label=member['username'], description=f"ID: {member['_id']}, Statut: {member['status']}", value=str(member['_id']))
-			for member in members
+			for member in members_to_show
 		]
 		
 		member_select = Select(
@@ -171,7 +231,7 @@ def _create_member_cmds(trema_db, github_token):
 		member_view = View()
 		member_view.add_item(member_select)
 
-		await ctx.respond("Sélectionnez le membre à supprimer:", view=member_view, ephemeral=True)
+		await ctx.respond(f"Sélectionnez le membre à supprimer:{warning}", view=member_view, ephemeral=True)
 
 	@member.command(name="add", description="Ajouter un membre manuellement.")
 	@is_authorized(trema_db)
