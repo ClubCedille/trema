@@ -3,7 +3,7 @@ from logger import logger
 import aiohttp
 
 async def dispatch_grav_gw(domaine, nom_club, contexte, github_token):
-    url = "https://api.github.com/repos/clubCedille/plateforme-Cedille/actions/workflows/request-grav.yml/dispatches"
+    url = "https://api.github.com/repos/clubCedille/k8s-cedille-production-v2/actions/workflows/request-grav.yml/dispatches"
     headers = {
         "Accept": "application/vnd.github+json",
         "Authorization": f"Bearer {github_token}",
