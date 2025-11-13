@@ -10,7 +10,7 @@ async def dispatch_grav_gw(domaine, nom_club, contexte, github_token):
         "X-GitHub-Api-Version": "2022-11-28"
     }
     data = {
-        "ref": "master",
+        "ref": "main",
         "inputs": {
             "domaine": domaine,
             "nom_club": nom_club,
