@@ -8,17 +8,19 @@ def _create_grav_requests_cmds(trema_db, request, github_token):
     async def request_grav_workflow(ctx,
             domaine: Option(str, "Domaine à utiliser (eg cedille.etsmtl.ca)"),
             nom_club: Option(str, "Nom du club. Pas de caractères spéciaux ou d'espaces outre - et _"),
-            contexte: Option(str, "Contexte du site (eg. site web, blog, etc.)")):
-        
+            contexte: Option(str, "Contexte du site (eg. site web, blog, etc.)"),
+            skeleton_url: Option(str, "URL du squelette Grav (optionnel, voir getgrav.org/downloads/skeletons)", required=False, default="")):
+
         await ctx.defer(ephemeral=True)
 
-        success, message = await dispatch_grav_gw(domaine, nom_club, contexte, github_token)
+        success, message = await dispatch_grav_gw(domaine, nom_club, contexte, github_token, skeleton_url)
 
         if success:
             request_data = {
                 "domaine": domaine,
                 "nom_club": nom_club,
-                "contexte": contexte
+                "contexte": contexte,
+                "skeleton_url": skeleton_url
             }
 
             trema_db.create_request(ctx.guild_id, "grav", request_data)

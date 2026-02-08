@@ -2,20 +2,23 @@ import os
 from logger import logger
 import aiohttp
 
-async def dispatch_grav_gw(domaine, nom_club, contexte, github_token):
+async def dispatch_grav_gw(domaine, nom_club, contexte, github_token, skeleton_url=""):
     url = "https://api.github.com/repos/clubCedille/k8s-cedille-production-v2/actions/workflows/request-grav.yml/dispatches"
     headers = {
         "Accept": "application/vnd.github+json",
         "Authorization": f"Bearer {github_token}",
         "X-GitHub-Api-Version": "2022-11-28"
     }
+    inputs = {
+        "domaine": domaine,
+        "nom_club": nom_club,
+        "contexte": contexte
+    }
+    if skeleton_url:
+        inputs["skeleton_url"] = skeleton_url
     data = {
         "ref": "main",
-        "inputs": {
-            "domaine": domaine,
-            "nom_club": nom_club,
-            "contexte": contexte
-        }
+        "inputs": inputs
     }
 
     async with aiohttp.ClientSession() as session:
