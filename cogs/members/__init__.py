@@ -273,7 +273,7 @@ def _create_member_cmds(trema_db, github_token):
 				await ctx.respond("Impossible d'ajouter le rôle des membres.", ephemeral=True)
 
 			try:
-				selected_member = trema_db.get_member(server_id, user_id_int)
+				selected_member = trema_db.get_member(user_id_int)
 				await add_member_to_gh_org_gw(ctx, selected_member, github_token)
 			except Exception as e:
 				logger.error(f"Exception: {e}")
