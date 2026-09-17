@@ -429,6 +429,7 @@ class _TremaDatabase:
 			member["status"] = "pending"
 
 		self.add_document("members", member)
+		return member["_id"]
 
 	def get_members(self, server_id, status=None):
 		members_collection = self._get_collection("members")
