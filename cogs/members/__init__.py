@@ -250,7 +250,7 @@ def _create_member_cmds(trema_db, github_token):
 			"request_time": str(datetime.now())
 		}
 		
-		trema_db.add_member(server_id, member_data)
+		member_id = trema_db.add_member(server_id, member_data)
 
 		embed = Embed(title="Membre ajouté", description=f"Le membre {username} a été ajouté avec le statut '{status}'.", color=Color.green())
 		await ctx.respond(embed=embed, ephemeral=True)
@@ -273,7 +273,7 @@ def _create_member_cmds(trema_db, github_token):
 				await ctx.respond("Impossible d'ajouter le rôle des membres.", ephemeral=True)
 
 			try:
-				selected_member = trema_db.get_member(user_id_int)
+				selected_member = trema_db.get_member(member_id)
 				await add_member_to_gh_org_gw(ctx, selected_member, github_token)
 			except Exception as e:
 				logger.error(f"Exception: {e}")

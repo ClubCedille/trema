@@ -1,5 +1,5 @@
 from datetime import datetime
-from discord import Embed, Color
+from discord import Embed, Color, NotFound, HTTPException
 from cogs.utils.dispatch import post_to_calidum
 from cogs.prompts import prompt_user_with_select, prompt_user, prompt_user_with_confirmation, prompt_user_error
 from cogs.utils.discord import find_role_in_guild
@@ -10,7 +10,11 @@ from cogs.utils.verify_gh_username import verify_gh_user
 def _create_member_requests_cmds(trema_db, request):
     @request.command(name="join", description="Obtenir accès au reste du serveur.")
     async def request_server_access(ctx):
-        await ctx.defer(ephemeral=True)
+        try:
+            await ctx.defer(ephemeral=True)
+        except (NotFound, HTTPException) as e:
+            logger.error(f"Failed to defer join interaction: {e}")
+            return
 
         requester_id = ctx.author.id
         server_id = ctx.guild_id
